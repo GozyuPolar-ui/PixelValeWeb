@@ -82,7 +82,7 @@ export default async function GameDetailPage({
     rating: Number(avgRating.toFixed(1)),
     reviewCount: reviewsWithProfiles.length,
     price: game.price ?? "Free",
-    heroImage: game.banner_image ?? game.cover_image ?? gallery[0]?.image ?? "",
+    heroImage: game.image_url ?? gallery[0]?.image ?? "",
     gallery,
     description: descriptionParagraphs,
     details: {

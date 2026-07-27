@@ -27,3 +27,15 @@ export type GameDetailData = {
     recommended: Record<string, string>;
   };
 };
+export type GameSummary = {
+  id: string;
+  slug: string;
+  title: string;
+  genre: string;
+  price: string;
+  isFree: boolean;
+  image: string;
+  rating: number;
+  reviewCount: number;
+  tagline: string; // <-- baris baru
+};

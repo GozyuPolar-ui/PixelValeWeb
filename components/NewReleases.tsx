@@ -3,9 +3,9 @@
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import GameCard from "./GameCard";
-import { newReleases } from "@/lib/data";
+import { GameSummary } from "@/lib/types";
 
-export default function NewReleases() {
+export default function NewReleases({ games }: { games: GameSummary[] }) {
   return (
     <section className="px-6 md:px-16 max-w-container-max mx-auto">
       <div className="flex justify-between items-end mb-12">
@@ -22,7 +22,7 @@ export default function NewReleases() {
         </motion.a>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-        {newReleases.map((game, i) => (
+        {games.map((game, i) => (
           <GameCard key={game.id} game={game} index={i} />
         ))}
       </div>

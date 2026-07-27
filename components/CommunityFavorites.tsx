@@ -4,9 +4,11 @@ import { motion } from "framer-motion";
 import { Star, ArrowRight, Gamepad2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { communityFavorites } from "@/lib/data";
+import { GameSummary } from "@/lib/types";
 
-export default function CommunityFavorites() {
+export default function CommunityFavorites({ games }: { games: GameSummary[] }) {
+  const favorites = games.slice(0, 3);
+
   return (
     <section className="px-6 md:px-16 max-w-container-max mx-auto">
       <div className="flex justify-between items-end mb-12">
@@ -23,11 +25,8 @@ export default function CommunityFavorites() {
         </motion.a>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {communityFavorites.map((game, i) => (
-          <Link
-            key={game.id}
-            href={game.id === "pixelvale-origins" ? "/games/pixelvale-origins" : "#"}
-          >
+        {favorites.map((game, i) => (
+          <Link key={game.id} href={`/games/${game.slug}`}>
             <motion.div
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -53,7 +52,7 @@ export default function CommunityFavorites() {
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="text-lg font-display text-ink-rich mb-1">{game.title}</h3>
-                  <p className="text-xs text-on-surface-variant">{game.quote}</p>
+                  <p className="text-xs text-on-surface-variant">{game.genre}</p>
                 </div>
                 <div className="text-right shrink-0 pl-4">
                   <p className={`font-bold ${game.isFree ? "text-secondary" : "text-primary"}`}>
@@ -64,7 +63,7 @@ export default function CommunityFavorites() {
                       <Star
                         key={idx}
                         size={14}
-                        className={idx < game.rating ? "fill-yellow-500" : "fill-none"}
+                        className={idx < Math.round(game.rating) ? "fill-yellow-500" : "fill-none"}
                       />
                     ))}
                   </div>
