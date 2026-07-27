@@ -2,12 +2,19 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { gameDetail } from "@/lib/data";
+import { GameDetailData } from "@/lib/types";
 
-const platforms = ["Windows", "MacOS", "Linux"];
+const platforms = ["Windows", "Mac", "Android"] as const;
 
-export default function DownloadPanel() {
-  const [active, setActive] = useState("Windows");
+export default function DownloadPanel({ game }: { game: GameDetailData }) {
+  const [active, setActive] = useState<(typeof platforms)[number]>("Windows");
+
+  const activeLink =
+    active === "Windows"
+      ? game.downloadLinks.windows
+      : active === "Mac"
+      ? game.downloadLinks.mac
+      : game.downloadLinks.android;
 
   return (
     <motion.div
@@ -33,18 +40,14 @@ export default function DownloadPanel() {
               </button>
             ))}
           </div>
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-2 gap-4 text-center">
             <div className="p-4 bg-white/50 rounded-lg">
               <p className="text-ink-muted text-xs uppercase">Size</p>
-              <p className="font-display text-secondary">{gameDetail.download.size}</p>
+              <p className="font-display text-secondary">{game.download.size || "—"}</p>
             </div>
             <div className="p-4 bg-white/50 rounded-lg">
               <p className="text-ink-muted text-xs uppercase">Version</p>
-              <p className="font-display text-secondary">{gameDetail.download.version}</p>
-            </div>
-            <div className="p-4 bg-white/50 rounded-lg">
-              <p className="text-ink-muted text-xs uppercase">Updated</p>
-              <p className="font-display text-secondary">{gameDetail.download.updated}</p>
+              <p className="font-display text-secondary">{game.download.version || "—"}</p>
             </div>
           </div>
         </div>
@@ -52,15 +55,20 @@ export default function DownloadPanel() {
         <div className="w-px h-32 bg-outline-variant hidden md:block" />
 
         <div className="text-center">
-          <motion.button
+          <motion.a
+            href={activeLink ?? undefined}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="bg-primary text-white px-16 py-6 rounded-lg font-display text-xl shadow-xl"
+            className={`inline-block bg-primary text-white px-16 py-6 rounded-lg font-display text-xl shadow-xl ${
+              !activeLink ? "opacity-50 pointer-events-none" : ""
+            }`}
           >
             DOWNLOAD
-          </motion.button>
+          </motion.a>
           <p className="mt-4 text-ink-muted text-sm italic">
-            Compatible with {active === "Windows" ? "Windows 10/11" : active === "MacOS" ? "macOS 12+" : "Ubuntu 20.04+"}
+            {activeLink
+              ? `Compatible with ${active}`
+              : `Not available for ${active} yet`}
           </p>
         </div>
       </div>

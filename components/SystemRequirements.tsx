@@ -2,10 +2,10 @@
 
 import { motion } from "framer-motion";
 import { ShieldCheck, Sparkles } from "lucide-react";
-import { gameDetail } from "@/lib/data";
+import { GameDetailData } from "@/lib/types";
 
-export default function SystemRequirements() {
-  const { minimum, recommended } = gameDetail.requirements;
+export default function SystemRequirements({ game }: { game: GameDetailData }) {
+  const { minimum, recommended } = game.requirements;
 
   return (
     <div className="max-w-container-max mx-auto px-6 md:px-16 mt-16">

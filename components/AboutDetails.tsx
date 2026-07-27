@@ -1,10 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Monitor, Laptop, Terminal } from "lucide-react";
-import { gameDetail } from "@/lib/data";
+import { Monitor, Laptop, Smartphone } from "lucide-react";
+import { GameDetailData } from "@/lib/types";
 
-export default function AboutDetails() {
+export default function AboutDetails({ game }: { game: GameDetailData }) {
   return (
     <div className="max-w-container-max mx-auto px-6 md:px-16 mt-16 grid grid-cols-1 lg:grid-cols-3 gap-6">
       <motion.div
@@ -17,7 +17,7 @@ export default function AboutDetails() {
           About the Journey
         </h3>
         <div className="space-y-4 text-on-surface-variant leading-relaxed">
-          {gameDetail.description.map((para, i) => (
+          {game.description.map((para, i) => (
             <p key={i}>{para}</p>
           ))}
         </div>
@@ -34,22 +34,22 @@ export default function AboutDetails() {
         <div className="space-y-4">
           <div className="flex justify-between border-b border-outline-variant pb-2">
             <span className="text-ink-muted">Developer</span>
-            <span className="font-bold text-secondary">{gameDetail.details.developer}</span>
+            <span className="font-bold text-secondary">{game.details.developer}</span>
           </div>
           <div className="flex justify-between border-b border-outline-variant pb-2">
             <span className="text-ink-muted">Publisher</span>
-            <span className="font-bold">{gameDetail.details.publisher}</span>
+            <span className="font-bold">{game.details.publisher}</span>
           </div>
           <div className="flex justify-between border-b border-outline-variant pb-2">
             <span className="text-ink-muted">Release Date</span>
-            <span className="font-bold">{gameDetail.details.releaseDate}</span>
+            <span className="font-bold">{game.details.releaseDate}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-ink-muted">Platforms</span>
             <div className="flex gap-2 text-ink-muted">
-              <Monitor size={18} />
-              <Laptop size={18} />
-              <Terminal size={18} />
+              {game.downloadLinks.windows && <Monitor size={18} />}
+              {game.downloadLinks.mac && <Laptop size={18} />}
+              {game.downloadLinks.android && <Smartphone size={18} />}
             </div>
           </div>
         </div>

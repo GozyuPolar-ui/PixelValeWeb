@@ -3,11 +3,11 @@
 import { motion } from "framer-motion";
 import { Star, Bookmark } from "lucide-react";
 import Image from "next/image";
-import { gameDetail } from "@/lib/data";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase";
+import { GameDetailData } from "@/lib/types";
 
-export default function GameHero() {
+export default function GameHero({ game }: { game: GameDetailData }) {
   const [wishlisted, setWishlisted] = useState(false);
   const supabase = createClient();
 
@@ -15,16 +15,8 @@ export default function GameHero() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data: game } = await supabase
-      .from("games")
-      .select("id")
-      .eq("title", gameDetail.title)
-      .single();
-
-    if (game) {
-      await supabase.from("user_wishlist").insert({ user_id: user.id, game_id: game.id });
-      setWishlisted(true);
-    }
+    await supabase.from("user_wishlist").insert({ user_id: user.id, game_id: game.id });
+    setWishlisted(true);
   };
   return (
     <section className="max-w-container-max mx-auto px-6 md:px-16 mt-8">
@@ -35,15 +27,15 @@ export default function GameHero() {
         className="relative w-full aspect-[21/9] rounded-xl overflow-hidden border-4 border-surface-variant"
       >
         <Image
-          src={gameDetail.heroImage}
-          alt={gameDetail.title}
+          src={game.heroImage}
+          alt={game.title}
           fill
           className="object-cover"
           priority
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-8">
           <div className="flex flex-wrap items-center gap-3 mb-2">
-            {gameDetail.tags.map((tag, i) => (
+            {game.tags.map((tag, i) => (
               <motion.span
                 key={tag}
                 initial={{ opacity: 0, y: 8 }}
@@ -61,18 +53,18 @@ export default function GameHero() {
             transition={{ delay: 0.3 }}
             className="text-3xl md:text-5xl font-display font-bold text-white drop-shadow-md"
           >
-            {gameDetail.title}
+            {game.title}
           </motion.h1>
           <div className="flex items-center gap-4 mt-2">
             <div className="flex items-center text-yellow-400">
               <Star size={18} className="fill-yellow-400" />
-              <span className="font-bold ml-1 text-white">{gameDetail.rating}</span>
+              <span className="font-bold ml-1 text-white">{game.rating}</span>
               <span className="text-white/80 ml-2 text-sm">
-                ({gameDetail.reviewCount} reviews)
+                ({game.reviewCount} reviews)
               </span>
             </div>
             <span className="text-white font-display text-xl ml-auto">
-              {gameDetail.price}
+              {game.price}
             </span>
           </div>
         </div>
@@ -86,7 +78,7 @@ export default function GameHero() {
         >
           Download Now
         </motion.button>
-<motion.button
+        <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={handleWishlist}
           disabled={wishlisted}

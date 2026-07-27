@@ -3,16 +3,16 @@
 import { motion } from "framer-motion";
 import { PlayCircle } from "lucide-react";
 import Image from "next/image";
-import { gameDetail } from "@/lib/data";
+import { GameDetailData } from "@/lib/types";
 
-export default function MediaGallery() {
+export default function MediaGallery({ game }: { game: GameDetailData }) {
   return (
     <div className="max-w-container-max mx-auto px-6 md:px-16 mt-16">
       <h3 className="text-xl font-display mb-6 border-b-4 border-surface-variant inline-block pb-1">
         Media Gallery
       </h3>
       <div className="flex gap-4 overflow-x-auto pb-4">
-        {gameDetail.gallery.map((item, i) => (
+        {game.gallery.map((item, i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, x: 20 }}
