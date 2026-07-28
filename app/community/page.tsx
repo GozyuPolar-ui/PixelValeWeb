@@ -3,13 +3,25 @@ import Footer from "@/components/Footer";
 import CommunityHeader from "@/components/community/CommunityHeader";
 import StatsBar from "@/components/community/StatsBar";
 import CommunityTabs from "@/components/community/CommunityTabs";
-import ThreadCard from "@/components/community/ThreadCard";
+import CommunityFeed from "@/components/community/CommunityFeed";
 import TopContributors from "@/components/community/TopContributors";
 import ValeWisdom from "@/components/community/ValeWisdom";
 import SocialLinks from "@/components/community/SocialLinks";
-import { pinnedThreads, regularThreads } from "@/lib/data";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { Thread } from "@/components/community/ThreadCard";
 
-export default function CommunityPage() {
+export default async function CommunityPage() {
+  const supabase = await createServerSupabaseClient();
+
+  const { data: rows } = await supabase
+    .from("community_threads")
+    .select("*, author:profiles(username, avatar_url)")
+    .order("created_at", { ascending: false });
+
+  const threads: Thread[] = (rows as any[]) ?? [];
+  const pinnedThreads = threads.filter((t) => t.pinned);
+  const regularThreads = threads.filter((t) => !t.pinned);
+
   return (
     <>
       <Navbar active="Community" />
@@ -19,44 +31,7 @@ export default function CommunityPage() {
         <CommunityTabs />
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <div className="lg:col-span-8 space-y-6">
-            {pinnedThreads.map((thread, i) => (
-              <ThreadCard
-                key={thread.id}
-                index={i}
-                pinned
-                avatar={thread.avatar}
-                tagLabel={thread.tagLabel}
-                title={thread.title}
-                excerpt={thread.excerpt}
-                replies={thread.replies}
-                likes={thread.likes}
-                lastActive={thread.lastActive}
-              />
-            ))}
-
-            <div className="h-1 bg-surface-variant opacity-50 my-8" />
-
-            {regularThreads.map((thread, i) => (
-              <ThreadCard
-                key={thread.id}
-                index={i}
-                avatar={thread.avatar}
-                author={thread.author}
-                badge={thread.badge}
-                badgeColor={thread.badgeColor}
-                title={thread.title}
-                excerpt={thread.excerpt}
-                replies={thread.replies}
-                likes={thread.likes}
-                lastActive={thread.time}
-              />
-            ))}
-
-            <div className="flex justify-center pt-8">
-              <button className="bg-surface border-2 border-primary text-primary px-12 py-3 rounded-lg font-bold hover:bg-primary hover:text-white transition-all">
-                Load More Travelers
-              </button>
-            </div>
+            <CommunityFeed pinnedThreads={pinnedThreads} regularThreads={regularThreads} />
           </div>
 
           <aside className="lg:col-span-4 space-y-8">

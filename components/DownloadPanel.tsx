@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Check, Download, Monitor, Apple, Smartphone } from "lucide-react";
 import { GameDetailData } from "@/lib/types";
 import { createClient } from "@/lib/supabase";
+import { formatIDR } from "@/lib/format";
 
 export default function DownloadPanel({ game }: { game: GameDetailData }) {
   const [owned, setOwned] = useState(false);
@@ -141,19 +142,37 @@ const activePlatform = allPlatforms.find((p) => p.key === selectedPlatform);
               )}
             </>
           ) : (
-            <>
-              <motion.button
-                onClick={handleAddToLibrary}
-                disabled={processing}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="inline-flex items-center gap-3 bg-primary text-white px-16 py-6 rounded-lg font-display text-xl shadow-xl disabled:opacity-70"
-              >
-                <Check size={22} /> {processing ? "..." : "ADD TO LIBRARY"}
-              </motion.button>
-              <p className="mt-4 text-ink-muted text-sm italic">
-                Free to add · downloads managed in Library
-              </p>
+<>
+              {game.isFree ? (
+                <>
+                  <motion.button
+                    onClick={handleAddToLibrary}
+                    disabled={processing}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="inline-flex items-center gap-3 bg-primary text-white px-16 py-6 rounded-lg font-display text-xl shadow-xl disabled:opacity-70"
+                  >
+                    <Check size={22} /> {processing ? "..." : "ADD TO LIBRARY"}
+                  </motion.button>
+                  <p className="mt-4 text-ink-muted text-sm italic">
+                    Free to add · downloads managed in Library
+                  </p>
+                </>
+              ) : (
+                <>
+                  <motion.a
+                    href={`/checkout?gameId=${game.id}`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="inline-flex items-center gap-3 bg-primary text-white px-16 py-6 rounded-lg font-display text-xl shadow-xl"
+                  >
+                    <Check size={22} /> BUY NOW
+                  </motion.a>
+                  <p className="mt-4 text-ink-muted text-sm italic">
+                    {formatIDR(game.price)} · secure payment via Midtrans
+                  </p>
+                </>
+              )}
             </>
           )}
         </div>

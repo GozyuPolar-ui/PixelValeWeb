@@ -1,46 +1,66 @@
-import { ShoppingBag, ShieldCheck, Download, ScrollText } from "lucide-react";
+import { redirect } from "next/navigation";
+import Script from "next/script";
 import CheckoutNav from "@/components/checkout/CheckoutNav";
 import ContactSection from "@/components/checkout/ContactSection";
-import PaymentMethodSection from "@/components/checkout/PaymentMethodSection";
-import BillingAddressSection from "@/components/checkout/BillingAddressSection";
 import OrderSummary from "@/components/checkout/OrderSummary";
+import CheckoutButton from "@/components/checkout/CheckoutButton";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
 
-export default function CheckoutPage() {
+export default async function CheckoutPage({
+  searchParams,
+}: {
+  searchParams: { gameId?: string };
+}) {
+  const supabase = await createServerSupabaseClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  if (!searchParams.gameId) {
+    redirect("/");
+  }
+
+  const { data: game } = await supabase
+    .from("games")
+    .select("id, title, price, is_free, image_url")
+    .eq("id", searchParams.gameId)
+    .single();
+
+  if (!game || game.is_free) {
+    redirect("/");
+  }
+
+  const { data: existing } = await supabase
+    .from("user_library")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("game_id", game.id)
+    .maybeSingle();
+
+  if (existing) {
+    redirect("/library");
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-surface">
+      <Script
+        src="https://app.sandbox.midtrans.com/snap/snap.js"
+        data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
+        strategy="afterInteractive"
+      />
       <CheckoutNav />
 
       <main className="flex-grow max-w-container-max mx-auto w-full px-6 md:px-16 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           <div className="lg:col-span-8 space-y-12">
             <ContactSection />
-            <PaymentMethodSection />
-            <BillingAddressSection />
-
-            <div className="pt-6 border-t-4 border-surface-container-highest">
-              <button className="w-full bg-primary text-white font-display text-lg py-6 hover:bg-primary/90 transition-all flex items-center justify-center gap-3 rounded-lg">
-                <ShoppingBag size={22} />
-                Complete Purchase
-              </button>
-
-              <div className="mt-8 flex flex-wrap justify-center gap-8 text-ink-muted">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck size={20} className="text-secondary" />
-                  <span className="text-xs">Secure Payment</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Download size={20} className="text-secondary" />
-                  <span className="text-xs">Instant Digital Delivery</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ScrollText size={20} className="text-secondary" />
-                  <span className="text-xs">DRM-Free Content</span>
-                </div>
-              </div>
-            </div>
+            <CheckoutButton gameId={game.id} />
           </div>
 
-          <OrderSummary />
+          <OrderSummary title={game.title} image={game.image_url || ""} price={Number(game.price)} />
         </div>
       </main>
 
