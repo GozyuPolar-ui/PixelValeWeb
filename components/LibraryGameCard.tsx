@@ -25,14 +25,15 @@ type Props = {
 
 export default function LibraryGameCard({ entry, index }: Props) {
   const { games, hours_played } = entry;
-  const platforms = [
+  const allPlatforms = [
     { key: "windows", label: "Windows", icon: Monitor, url: games.download_windows },
     { key: "mac", label: "Mac", icon: Apple, url: games.download_mac },
     { key: "android", label: "Android", icon: Smartphone, url: games.download_android },
-  ].filter((p) => p.url);
+  ];
+  const availablePlatforms = allPlatforms.filter((p) => p.url);
 
-  const [selected, setSelected] = useState(platforms[0]?.key || "windows");
-  const activePlatform = platforms.find((p) => p.key === selected);
+  const [selected, setSelected] = useState(availablePlatforms[0]?.key || allPlatforms[0]?.key);
+  const activePlatform = allPlatforms.find((p) => p.key === selected);
 
   return (
     <motion.div
@@ -42,7 +43,7 @@ export default function LibraryGameCard({ entry, index }: Props) {
       transition={{ delay: index * 0.08 }}
       className="bg-paper-dark border border-outline-variant rounded-xl overflow-hidden"
     >
-<Link href={`/games/${games.slug}`}>
+      <Link href={`/games/${games.slug}`}>
         <div className="relative aspect-video bg-surface-container-highest cursor-pointer">
           {games.image_url && <Image src={games.image_url} alt={games.title} fill className="object-cover" />}
         </div>
@@ -57,35 +58,39 @@ export default function LibraryGameCard({ entry, index }: Props) {
           {games.genre} · {hours_played}h played
         </p>
 
-        {platforms.length === 0 ? (
-          <p className="text-xs text-ink-muted italic">No download links available yet.</p>
-        ) : (
-          <>
-            <div className="flex gap-2 mb-3">
-              {platforms.map((p) => (
-                <button
-                  key={p.key}
-                  onClick={() => setSelected(p.key)}
-                  className={`p-2 rounded-lg border transition-colors ${
-                    selected === p.key
-                      ? "bg-primary text-white border-primary"
-                      : "border-outline-variant text-ink-muted hover:bg-surface-container-low"
-                  }`}
-                  title={p.label}
-                >
-                  <p.icon size={16} />
-                </button>
-              ))}
-            </div>
-            <a
-              href={activePlatform?.url || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full bg-primary text-white py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors"
+        <div className="flex gap-2 mb-3">
+          {allPlatforms.map((p) => (
+            <button
+              key={p.key}
+              onClick={() => p.url && setSelected(p.key)}
+              disabled={!p.url}
+              className={`p-2 rounded-lg border transition-colors ${
+                !p.url
+                  ? "border-outline-variant text-ink-muted/40 cursor-not-allowed"
+                  : selected === p.key
+                  ? "bg-primary text-white border-primary"
+                  : "border-outline-variant text-ink-muted hover:bg-surface-container-low"
+              }`}
+              title={p.url ? p.label : `${p.label} — Coming Soon`}
             >
-              <Download size={16} /> Download for {activePlatform?.label}
-            </a>
-          </>
+              <p.icon size={16} />
+            </button>
+          ))}
+        </div>
+
+        {activePlatform?.url ? (
+          <a
+            href={activePlatform.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full bg-primary text-white py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors"
+          >
+            <Download size={16} /> Download for {activePlatform.label}
+          </a>
+        ) : (
+          <div className="w-full bg-surface-container-highest text-ink-muted py-2.5 rounded-lg text-sm font-bold text-center cursor-not-allowed">
+            Coming Soon
+          </div>
         )}
       </div>
     </motion.div>

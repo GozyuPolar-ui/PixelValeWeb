@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase";
 import { GameDetailData } from "@/lib/types";
+import { formatIDR } from "@/lib/format";
 
 export default function GameHero({ game }: { game: GameDetailData }) {
   const [wishlisted, setWishlisted] = useState(false);
@@ -79,7 +80,9 @@ export default function GameHero({ game }: { game: GameDetailData }) {
               <span className="font-bold ml-1 text-white">{game.rating}</span>
               <span className="text-white/80 ml-2 text-sm">({game.reviewCount} reviews)</span>
             </div>
-            <span className="text-white font-display text-xl ml-auto">{game.price}</span>
+            <span className="text-white font-display text-xl ml-auto">
+              {game.isFree ? "Free" : formatIDR(game.price)}
+            </span>
           </div>
         </div>
       </motion.div>

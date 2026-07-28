@@ -4,7 +4,8 @@ export type GameDetailData = {
   tags: string[];
   rating: number;
   reviewCount: number;
-  price: string;
+  price: number;
+  isFree: boolean;
   heroImage: string;
   gallery: { type: "image" | "video"; image: string }[];
   description: string[];
@@ -22,20 +23,24 @@ export type GameDetailData = {
     mac: string | null;
     android: string | null;
   };
-  requirements: {
-    minimum: Record<string, string>;
-    recommended: Record<string, string>;
-  };
+  requirements: Record<
+    string,
+    {
+      minimum?: Record<string, string>;
+      recommended?: Record<string, string>;
+    }
+  >;
 };
+
 export type GameSummary = {
   id: string;
   slug: string;
   title: string;
   genre: string;
-  price: string;
+  price: number;
   isFree: boolean;
   image: string;
   rating: number;
   reviewCount: number;
-  tagline: string; // <-- baris baru
+  tagline: string;
 };

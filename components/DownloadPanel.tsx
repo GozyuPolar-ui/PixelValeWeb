@@ -12,13 +12,16 @@ export default function DownloadPanel({ game }: { game: GameDetailData }) {
   const [processing, setProcessing] = useState(false);
   const supabase = createClient();
 
-  const platforms = [
+const allPlatforms = [
     { key: "windows", label: "Windows", icon: Monitor, url: game.downloadLinks.windows },
     { key: "mac", label: "Mac", icon: Apple, url: game.downloadLinks.mac },
     { key: "android", label: "Android", icon: Smartphone, url: game.downloadLinks.android },
-  ].filter((p) => p.url);
+  ];
+  const availablePlatforms = allPlatforms.filter((p) => p.url);
 
-  const [selectedPlatform, setSelectedPlatform] = useState(platforms[0]?.key || "windows");
+  const [selectedPlatform, setSelectedPlatform] = useState(
+    availablePlatforms[0]?.key || allPlatforms[0]?.key || "windows"
+  );
 
   useEffect(() => {
     const checkOwnership = async () => {
@@ -60,7 +63,7 @@ export default function DownloadPanel({ game }: { game: GameDetailData }) {
     setProcessing(false);
   };
 
-  const activePlatform = platforms.find((p) => p.key === selectedPlatform);
+const activePlatform = allPlatforms.find((p) => p.key === selectedPlatform);
 
   return (
 <motion.div
@@ -91,39 +94,51 @@ export default function DownloadPanel({ game }: { game: GameDetailData }) {
             <div className="h-20 flex items-center justify-center text-ink-muted text-sm">Loading...</div>
           ) : owned ? (
             <>
-              {platforms.length > 0 && (
-                <div className="flex gap-2 justify-center mb-4">
-                  {platforms.map((p) => (
-                    <button
-                      key={p.key}
-                      onClick={() => setSelectedPlatform(p.key)}
-                      className={`p-3 rounded-lg border transition-colors ${
-                        selectedPlatform === p.key
-                          ? "bg-primary text-white border-primary"
-                          : "border-outline-variant text-ink-muted hover:bg-surface-container-low"
-                      }`}
-                      title={p.label}
-                    >
-                      <p.icon size={20} />
-                    </button>
-                  ))}
-                </div>
+<div className="flex gap-2 justify-center mb-4">
+                {allPlatforms.map((p) => (
+                  <button
+                    key={p.key}
+                    onClick={() => p.url && setSelectedPlatform(p.key)}
+                    disabled={!p.url}
+                    className={`p-3 rounded-lg border transition-colors relative ${
+                      !p.url
+                        ? "border-outline-variant text-ink-muted/40 cursor-not-allowed"
+                        : selectedPlatform === p.key
+                        ? "bg-primary text-white border-primary"
+                        : "border-outline-variant text-ink-muted hover:bg-surface-container-low"
+                    }`}
+                    title={p.url ? p.label : `${p.label} — Coming Soon`}
+                  >
+                    <p.icon size={20} />
+                  </button>
+                ))}
+              </div>
+              {activePlatform?.url ? (
+                <>
+                  <motion.a
+                    href={activePlatform.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="inline-flex items-center gap-3 bg-primary text-white px-12 py-5 rounded-lg font-display text-lg shadow-xl"
+                  >
+                    <Download size={20} /> DOWNLOAD
+                  </motion.a>
+                  <p className="mt-4 text-ink-muted text-sm italic">
+                    Compatible with {activePlatform.label}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="inline-flex items-center gap-3 bg-surface-container-highest text-ink-muted px-12 py-5 rounded-lg font-display text-lg cursor-not-allowed">
+                    COMING SOON
+                  </div>
+                  <p className="mt-4 text-ink-muted text-sm italic">
+                    {allPlatforms.find((p) => p.key === selectedPlatform)?.label} version is on its way
+                  </p>
+                </>
               )}
-              <motion.a
-                href={activePlatform?.url || "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={`inline-flex items-center gap-3 bg-primary text-white px-12 py-5 rounded-lg font-display text-lg shadow-xl ${
-                  !activePlatform ? "opacity-50 pointer-events-none" : ""
-                }`}
-              >
-                <Download size={20} /> DOWNLOAD
-              </motion.a>
-              <p className="mt-4 text-ink-muted text-sm italic">
-                {activePlatform ? `Compatible with ${activePlatform.label}` : "No download available"}
-              </p>
             </>
           ) : (
             <>

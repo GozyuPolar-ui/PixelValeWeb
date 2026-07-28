@@ -79,14 +79,14 @@ useEffect(() => {
       }`}
     >
       <div className="flex justify-between items-center h-16 px-6 md:px-16 max-w-container-max mx-auto">
-        <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded bg-primary/10 flex items-center justify-center font-display text-primary text-sm">
-            PV
-          </div>
-          <span className="text-xl font-display font-bold text-primary">
-            Pixelvale Store
-          </span>
-        </div>
+<div className="flex items-center gap-3">
+  <div className="relative h-9 w-9 rounded overflow-hidden shrink-0">
+    <Image src="/PixelVale.jpeg" alt="Pixelvale" fill className="object-cover" />
+  </div>
+  <span className="text-xl font-display font-bold text-primary">
+    Pixelvale Store
+  </span>
+</div>
 
         <div className="hidden md:flex items-center gap-8">
           {links.map((link) => (

@@ -8,7 +8,7 @@ import SystemRequirements from "@/components/SystemRequirements";
 import CommunityReviews from "@/components/CommunityReviews";
 import RelatedGames from "@/components/RelatedGames";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
-import { GameDetailData } from "@/lib/types";
+import { GameDetailData, GameSummary } from "@/lib/types";
 import { notFound } from "next/navigation";
 
 export default async function GameDetailPage({
@@ -81,7 +81,8 @@ export default async function GameDetailPage({
     tags: game.tags ?? [],
     rating: Number(avgRating.toFixed(1)),
     reviewCount: reviewsWithProfiles.length,
-    price: game.price ?? "Free",
+    price: game.is_free ? 0 : Number(game.price ?? 0),
+    isFree: !!game.is_free,
     heroImage: game.image_url ?? gallery[0]?.image ?? "",
     gallery,
     description: descriptionParagraphs,
@@ -99,11 +100,28 @@ export default async function GameDetailPage({
       mac: game.download_mac ?? null,
       android: game.download_android ?? null,
     },
-    requirements: {
-      minimum: game.min_requirements ?? {},
-      recommended: game.rec_requirements ?? {},
-    },
+    requirements: game.requirements ?? {},
   };
+
+  // Related games: game lain selain yang lagi dibuka
+  const { data: relatedRaw } = await supabase
+    .from("games")
+    .select("id, slug, title, genre, price, is_free, image_url")
+    .neq("id", game.id)
+    .limit(4);
+
+  const relatedGames: GameSummary[] = (relatedRaw || []).map((g) => ({
+    id: g.id,
+    slug: g.slug,
+    title: g.title,
+    genre: g.genre ?? "",
+    price: g.is_free ? 0 : Number(g.price ?? 0),
+    isFree: !!g.is_free,
+    image: g.image_url ?? "",
+    rating: 0,
+    reviewCount: 0,
+    tagline: "",
+  }));
 
   return (
     <>
@@ -115,7 +133,7 @@ export default async function GameDetailPage({
         <DownloadPanel game={gameDetail} />
         <SystemRequirements game={gameDetail} />
         <CommunityReviews gameId={game.id} reviews={reviewsWithProfiles} hasReviewed={hasReviewed} />
-        <RelatedGames />
+        <RelatedGames games={relatedGames} />
       </main>
       <Footer />
     </>

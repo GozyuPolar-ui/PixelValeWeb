@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { GameSummary } from "@/lib/types";
+import { formatIDR } from "@/lib/format";
+
 
 export default function Hero({ games }: { games: GameSummary[] }) {
   const featured = games[0];
@@ -97,12 +99,12 @@ export default function Hero({ games }: { games: GameSummary[] }) {
                       {game.title}
                     </h4>
                     <p className="text-xs text-on-surface-variant mb-2">{game.genre}</p>
-                    <span
+                      <span
                       className={`font-bold ${
                         game.isFree ? "text-secondary" : "text-primary"
                       }`}
                     >
-                      {game.price}
+                      {game.isFree ? "Free" : formatIDR(game.price)}
                     </span>
                   </div>
                 </motion.div>

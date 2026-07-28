@@ -8,11 +8,6 @@ import Footer from "@/components/Footer";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { GameSummary } from "@/lib/types";
 
-function formatPrice(price: number | null, isFree: boolean) {
-  if (isFree || !price) return "Free";
-  return `$${Number(price).toFixed(2)}`;
-}
-
 export default async function Home() {
   const supabase = await createServerSupabaseClient();
 
@@ -21,20 +16,24 @@ export default async function Home() {
     .select("*")
     .order("created_at", { ascending: false });
 
-const games: GameSummary[] = (rows ?? []).map((g) => ({
+  const games: GameSummary[] = (rows ?? []).map((g) => ({
     id: g.id,
     slug: g.slug,
     title: g.title,
     genre: g.genre ?? "",
-    price: formatPrice(g.price, g.is_free),
+    price: g.is_free ? 0 : Number(g.price ?? 0),
     isFree: g.is_free ?? false,
     image: g.image_url || "",
     rating: g.rating ?? 0,
     reviewCount: g.review_count ?? 0,
-    tagline: g.description
-      ? String(g.description).split(/\n/)[0].trim()
-      : "",
+    tagline: g.description ? String(g.description).split(/\n/)[0].trim() : "",
   }));
+
+  const { data: articleRows } = await supabase
+    .from("articles")
+    .select("id, title, excerpt, category, image_url, created_at")
+    .order("created_at", { ascending: false })
+    .limit(2);
 
   return (
     <>
@@ -45,7 +44,7 @@ const games: GameSummary[] = (rows ?? []).map((g) => ({
         <GenreGrid />
         <CommunityFavorites games={games} />
       </main>
-      <PlatformNews />
+      <PlatformNews articles={articleRows || []} />
       <Footer />
     </>
   );

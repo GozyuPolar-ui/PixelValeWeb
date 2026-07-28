@@ -33,6 +33,6 @@ const config: Config = {
       maxWidth: { "container-max": "1280px" },
     },
   },
-  plugins: [],
+  plugins: [require("@tailwindcss/typography")],
 };
 export default config;

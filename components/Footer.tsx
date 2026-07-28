@@ -1,18 +1,46 @@
-import { MessageCircle, MessageSquare, Video } from "lucide-react";
+import Link from "next/link";
+import { FaDiscord, FaYoutube, FaGithub } from "react-icons/fa";
+import Image from "next/image";
 
-const columns = [
+type FooterLink = {
+  label: string;
+  href: string | null; // null = Coming Soon
+};
+
+const columns: { title: string; links: FooterLink[] }[] = [
   {
     title: "Platform",
-    links: ["Download Launcher", "Store Policy", "Gift Cards", "Career Opportunities"],
+    links: [
+      { label: "Download Launcher", href: "/library" },
+      { label: "Store Policy", href: "/support/store-policy" },
+      { label: "Gift Cards", href: null },
+      { label: "Career Opportunities", href: null },
+    ],
   },
   {
     title: "Support",
-    links: ["Help Center", "Refund Policy", "Server Status", "Contact Us"],
+    links: [
+      { label: "Help Center", href: "/support" },
+      { label: "Refund Policy", href: "/support/refund-policy" },
+      { label: "Server Status", href: null },
+      { label: "Contact Us", href: "/support/contact" },
+    ],
   },
   {
     title: "Developers",
-    links: ["Developer Portal", "Publish Your Game", "API Documentation", "Brand Assets"],
+    links: [
+      { label: "Developer Portal", href: null },
+      { label: "Publish Your Game", href: "/support/contact" },
+      { label: "API Documentation", href: null },
+      { label: "Brand Assets", href: null },
+    ],
   },
+];
+
+const socials = [
+  { label: "Discord", href: "https://discord.gg/QG8yNNrKm", icon: FaDiscord },
+  { label: "YouTube", href: "http://www.youtube.com/@ZaiaUltra", icon: FaYoutube },
+  { label: "GitHub", href: "https://github.com/GozyuPolar-ui", icon: FaGithub },
 ];
 
 export default function Footer() {
@@ -21,12 +49,12 @@ export default function Footer() {
       <div className="px-6 md:px-16 max-w-container-max mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center font-display text-primary text-xs">
-                PV
-              </div>
-              <span className="font-display text-primary">Pixelvale Games</span>
-            </div>
+<div className="flex items-center gap-2">
+  <div className="relative h-8 w-8 rounded overflow-hidden shrink-0">
+    <Image src="/PixelVale.jpeg" alt="Pixelvale" fill className="object-cover" />
+  </div>
+  <span className="font-display text-primary">Pixelvale Games</span>
+</div>
             <p className="text-xs text-on-surface-variant max-w-xs">
               Connecting players with handcrafted worlds. The premiere home for
               independent game creators.
@@ -38,14 +66,28 @@ export default function Footer() {
               <h4 className="font-display text-sm text-ink-rich mb-6 uppercase tracking-wider">
                 {col.title}
               </h4>
-              <ul className="space-y-3 text-xs text-on-surface-variant">
-                {col.links.map((link) => (
-                  <li key={link}>
-                    <a href="#" className="hover:text-primary transition-colors">
-                      {link}
-                    </a>
-                  </li>
-                ))}
+              <ul className="space-y-3 text-xs">
+                {col.links.map((link) =>
+                  link.href ? (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        className="text-on-surface-variant hover:text-primary transition-colors"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ) : (
+                    <li key={link.label}>
+                      <span className="text-on-surface-variant/40 cursor-not-allowed flex items-center gap-2">
+                        {link.label}
+                        <span className="text-[9px] bg-surface-variant text-on-surface-variant/70 px-1.5 py-0.5 rounded uppercase tracking-wide">
+                          Soon
+                        </span>
+                      </span>
+                    </li>
+                  )
+                )}
               </ul>
             </div>
           ))}
@@ -56,18 +98,18 @@ export default function Footer() {
             © 2024 Pixelvale Indie Games Platform. All rights reserved.
           </p>
           <div className="flex gap-8">
-            <a href="#" className="text-secondary opacity-80 hover:opacity-100 hover:text-primary flex items-center gap-2 transition-all">
-              <MessageCircle size={18} />
-              <span className="text-xs">Discord</span>
-            </a>
-            <a href="#" className="text-secondary opacity-80 hover:opacity-100 hover:text-primary flex items-center gap-2 transition-all">
-              <MessageSquare size={18} />
-              <span className="text-xs">Twitter</span>
-            </a>
-            <a href="#" className="text-secondary opacity-80 hover:opacity-100 hover:text-primary flex items-center gap-2 transition-all">
-              <Video size={18} />
-              <span className="text-xs">YouTube</span>
-            </a>
+            {socials.map(({ label, href, icon: Icon }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-secondary opacity-80 hover:opacity-100 hover:text-primary flex items-center gap-2 transition-all"
+              >
+                <Icon size={18} />
+                <span className="text-xs">{label}</span>
+              </a>
+            ))}
           </div>
         </div>
       </div>
