@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 import {
   Swords,
   Map,
@@ -46,22 +47,21 @@ export default function GenreGrid() {
           {genres.map((genre, i) => {
             const Icon = iconMap[genre.icon];
             return (
-              <motion.div
-                key={genre.name}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.05 }}
-                whileHover={{ y: -4 }}
-                className="bg-surface p-6 rounded-lg shadow-pixel hover:shadow-pixel-hover transition-shadow cursor-pointer text-center group"
-              >
-                <motion.div whileHover={{ scale: 1.15, rotate: 5 }}>
-                  <Icon className="w-8 h-8 mb-3 mx-auto text-primary" />
+              <Link key={genre.name} href={`/genre/${encodeURIComponent(genre.name)}`}>
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.05 }}
+                  whileHover={{ y: -4 }}
+                  className="bg-surface p-6 rounded-lg shadow-pixel hover:shadow-pixel-hover transition-shadow cursor-pointer text-center group"
+                >
+                  <motion.div whileHover={{ scale: 1.15, rotate: 5 }}>
+                    <Icon className="w-8 h-8 mb-3 mx-auto text-primary" />
+                  </motion.div>
+                  <p className="text-xs font-bold uppercase tracking-wider">{genre.name}</p>
                 </motion.div>
-                <p className="text-xs font-bold uppercase tracking-wider">
-                  {genre.name}
-                </p>
-              </motion.div>
+              </Link>
             );
           })}
         </div>

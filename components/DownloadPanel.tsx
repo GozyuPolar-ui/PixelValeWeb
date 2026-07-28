@@ -1,45 +1,77 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { Check, Download, Monitor, Apple, Smartphone } from "lucide-react";
 import { GameDetailData } from "@/lib/types";
-
-const platforms = ["Windows", "Mac", "Android"] as const;
+import { createClient } from "@/lib/supabase";
 
 export default function DownloadPanel({ game }: { game: GameDetailData }) {
-  const [active, setActive] = useState<(typeof platforms)[number]>("Windows");
+  const [owned, setOwned] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [processing, setProcessing] = useState(false);
+  const supabase = createClient();
 
-  const activeLink =
-    active === "Windows"
-      ? game.downloadLinks.windows
-      : active === "Mac"
-      ? game.downloadLinks.mac
-      : game.downloadLinks.android;
+  const platforms = [
+    { key: "windows", label: "Windows", icon: Monitor, url: game.downloadLinks.windows },
+    { key: "mac", label: "Mac", icon: Apple, url: game.downloadLinks.mac },
+    { key: "android", label: "Android", icon: Smartphone, url: game.downloadLinks.android },
+  ].filter((p) => p.url);
+
+  const [selectedPlatform, setSelectedPlatform] = useState(platforms[0]?.key || "windows");
+
+  useEffect(() => {
+    const checkOwnership = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data } = await supabase
+          .from("user_library")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("game_id", game.id)
+          .maybeSingle();
+        setOwned(!!data);
+      }
+      setChecking(false);
+    };
+    checkOwnership();
+  }, [game.id]);
+
+  const handleAddToLibrary = async () => {
+    if (owned || processing) return;
+    setProcessing(true);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      await supabase.from("user_library").insert({
+        user_id: user.id,
+        game_id: game.id,
+        hours_played: 0,
+      });
+      setOwned(true);
+    }
+
+    setProcessing(false);
+  };
+
+  const activePlatform = platforms.find((p) => p.key === selectedPlatform);
 
   return (
-    <motion.div
+<motion.div
+      id="download-panel"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="max-w-container-max mx-auto px-6 md:px-16 mt-16"
+      className="max-w-container-max mx-auto px-6 md:px-16 mt-16 scroll-mt-24"
     >
       <div className="bg-paper-dark p-8 rounded-xl border-4 border-surface-variant shadow-inner flex flex-col md:flex-row items-center justify-between gap-8">
         <div className="flex-1 w-full">
-          <div className="flex gap-2 mb-6">
-            {platforms.map((p) => (
-              <button
-                key={p}
-                onClick={() => setActive(p)}
-                className={`px-6 py-2 rounded-t-lg font-bold text-xs uppercase transition-colors ${
-                  active === p
-                    ? "bg-primary text-white"
-                    : "text-ink-muted hover:bg-surface-container"
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
           <div className="grid grid-cols-2 gap-4 text-center">
             <div className="p-4 bg-white/50 rounded-lg">
               <p className="text-ink-muted text-xs uppercase">Size</p>
@@ -54,22 +86,61 @@ export default function DownloadPanel({ game }: { game: GameDetailData }) {
 
         <div className="w-px h-32 bg-outline-variant hidden md:block" />
 
-        <div className="text-center">
-          <motion.a
-            href={activeLink ?? undefined}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={`inline-block bg-primary text-white px-16 py-6 rounded-lg font-display text-xl shadow-xl ${
-              !activeLink ? "opacity-50 pointer-events-none" : ""
-            }`}
-          >
-            DOWNLOAD
-          </motion.a>
-          <p className="mt-4 text-ink-muted text-sm italic">
-            {activeLink
-              ? `Compatible with ${active}`
-              : `Not available for ${active} yet`}
-          </p>
+        <div className="text-center min-w-[280px]">
+          {checking ? (
+            <div className="h-20 flex items-center justify-center text-ink-muted text-sm">Loading...</div>
+          ) : owned ? (
+            <>
+              {platforms.length > 0 && (
+                <div className="flex gap-2 justify-center mb-4">
+                  {platforms.map((p) => (
+                    <button
+                      key={p.key}
+                      onClick={() => setSelectedPlatform(p.key)}
+                      className={`p-3 rounded-lg border transition-colors ${
+                        selectedPlatform === p.key
+                          ? "bg-primary text-white border-primary"
+                          : "border-outline-variant text-ink-muted hover:bg-surface-container-low"
+                      }`}
+                      title={p.label}
+                    >
+                      <p.icon size={20} />
+                    </button>
+                  ))}
+                </div>
+              )}
+              <motion.a
+                href={activePlatform?.url || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`inline-flex items-center gap-3 bg-primary text-white px-12 py-5 rounded-lg font-display text-lg shadow-xl ${
+                  !activePlatform ? "opacity-50 pointer-events-none" : ""
+                }`}
+              >
+                <Download size={20} /> DOWNLOAD
+              </motion.a>
+              <p className="mt-4 text-ink-muted text-sm italic">
+                {activePlatform ? `Compatible with ${activePlatform.label}` : "No download available"}
+              </p>
+            </>
+          ) : (
+            <>
+              <motion.button
+                onClick={handleAddToLibrary}
+                disabled={processing}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-flex items-center gap-3 bg-primary text-white px-16 py-6 rounded-lg font-display text-xl shadow-xl disabled:opacity-70"
+              >
+                <Check size={22} /> {processing ? "..." : "ADD TO LIBRARY"}
+              </motion.button>
+              <p className="mt-4 text-ink-muted text-sm italic">
+                Free to add · downloads managed in Library
+              </p>
+            </>
+          )}
         </div>
       </div>
     </motion.div>

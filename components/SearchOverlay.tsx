@@ -7,30 +7,45 @@ import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 
-export default function SearchOverlay({ onClose }: { onClose: () => void }) {
+export default function SearchOverlay({
+  onClose,
+  initialGenre,
+}: {
+  onClose: () => void;
+  initialGenre?: string;
+}) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
 
-  useEffect(() => {
-    if (!query.trim()) {
-      setResults([]);
-      return;
-    }
-    const timeout = setTimeout(async () => {
+useEffect(() => {
+    const fetchResults = async () => {
+      if (!query.trim() && !initialGenre) {
+        setResults([]);
+        return;
+      }
       setLoading(true);
-      const { data } = await supabase
+
+      let request = supabase
         .from("games")
-        .select("id, title, genre, price, is_free, image_url")
-        .ilike("title", `%${query}%`)
-        .limit(8);
+        .select("id, slug, title, genre, price, is_free, image_url")
+        .limit(12);
+
+      if (query.trim()) {
+        request = request.ilike("title", `%${query}%`);
+      } else if (initialGenre) {
+        request = request.ilike("genre", `%${initialGenre}%`);
+      }
+
+      const { data } = await request;
       setResults(data || []);
       setLoading(false);
-    }, 300);
+    };
 
+    const timeout = setTimeout(fetchResults, 300);
     return () => clearTimeout(timeout);
-  }, [query]);
+  }, [query, initialGenre]);
 
   return (
     <AnimatePresence>
@@ -50,12 +65,12 @@ export default function SearchOverlay({ onClose }: { onClose: () => void }) {
         >
           <div className="flex items-center gap-3 p-4 border-b border-outline-variant">
             <Search size={20} className="text-ink-muted" />
-            <input
+              <input
               autoFocus
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cari game..."
+              placeholder={initialGenre ? `Showing: ${initialGenre}` : "Cari game..."}
               className="flex-1 outline-none text-sm"
             />
             <button onClick={onClose}>
@@ -65,13 +80,13 @@ export default function SearchOverlay({ onClose }: { onClose: () => void }) {
 
           <div className="max-h-96 overflow-y-auto">
             {loading && <p className="text-center text-xs text-ink-muted py-6">Mencari...</p>}
-            {!loading && query && results.length === 0 && (
+                {!loading && (query || initialGenre) && results.length === 0 && (
               <p className="text-center text-xs text-ink-muted py-6">Tidak ada game ditemukan.</p>
             )}
             {results.map((game) => (
-              <Link
+                <Link
                 key={game.id}
-                href="/"
+                href={`/games/${game.slug}`}
                 onClick={onClose}
                 className="flex items-center gap-3 p-3 hover:bg-surface-container-low transition-colors"
               >

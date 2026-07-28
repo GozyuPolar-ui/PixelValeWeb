@@ -1,40 +1,38 @@
+import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LibraryHeader from "@/components/LibraryHeader";
-import LibraryFilters from "@/components/LibraryFilters";
-import LibraryGameCard from "@/components/LibraryGameCard";
-import DownloadWidget from "@/components/DownloadWidget";
-import RecentlyPlayed from "@/components/RecentlyPlayed";
+import LibraryContent from "@/components/LibraryContent";
 import DiscoveryPrompt from "@/components/DiscoveryPrompt";
-import { libraryGames } from "@/lib/data";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
 
-export default function LibraryPage() {
+export default async function LibraryPage() {
+  const supabase = await createServerSupabaseClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const { data: libraryEntries } = await supabase
+    .from("user_library")
+    .select(
+      "id, hours_played, acquired_at, games(id, slug, title, genre, image_url, download_windows, download_mac, download_android)"
+    )
+    .eq("user_id", user.id)
+    .order("acquired_at", { ascending: false });
+
+  const games = libraryEntries || [];
+
   return (
     <>
       <Navbar active="Library" />
       <main className="max-w-container-max mx-auto px-6 md:px-16 pt-32 pb-24">
-        <LibraryHeader />
-        <div className="flex flex-col lg:flex-row gap-8">
-          <div className="flex-1">
-            <LibraryFilters />
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-              {libraryGames.map((game, i) => (
-                <LibraryGameCard
-                  key={game.id}
-                  title={game.title}
-                  genre={game.genre}
-                  installed={game.installed}
-                  image={game.image}
-                  index={i}
-                />
-              ))}
-            </div>
-          </div>
-          <aside className="w-full lg:w-80 flex flex-col gap-8">
-            <DownloadWidget />
-            <RecentlyPlayed />
-            <DiscoveryPrompt />
-          </aside>
+        <LibraryHeader count={games.length} />
+        <LibraryContent games={games} />
+        <div className="mt-16 max-w-sm mx-auto">
+          <DiscoveryPrompt />
         </div>
       </main>
       <Footer />
