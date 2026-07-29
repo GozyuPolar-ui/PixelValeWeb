@@ -37,10 +37,10 @@ export default function CheckoutButton({ gameId }: { gameId: string }) {
 
       window.snap.pay(data.token, {
         onSuccess: () => {
-          router.push("/checkout/confirmation");
+          router.push(`/checkout/confirmation?order_id=${data.orderId}`);
         },
         onPending: () => {
-          router.push("/checkout/confirmation");
+          router.push(`/checkout/confirmation?order_id=${data.orderId}`);
         },
         onError: () => {
           setError("Pembayaran gagal. Coba lagi.");

@@ -43,4 +43,5 @@ export type GameSummary = {
   rating: number;
   reviewCount: number;
   tagline: string;
+  owned: boolean;
 };

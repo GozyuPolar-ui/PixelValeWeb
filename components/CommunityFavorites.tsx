@@ -5,6 +5,7 @@ import { Star, ArrowRight, Gamepad2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { GameSummary } from "@/lib/types";
+import { formatIDR } from "@/lib/format";
 
 export default function CommunityFavorites({ games }: { games: GameSummary[] }) {
   const favorites = games.slice(0, 3);
@@ -55,9 +56,9 @@ export default function CommunityFavorites({ games }: { games: GameSummary[] }) 
                   <p className="text-xs text-on-surface-variant">{game.genre}</p>
                 </div>
                 <div className="text-right shrink-0 pl-4">
-                  <p className={`font-bold ${game.isFree ? "text-secondary" : "text-primary"}`}>
-                    {game.price}
-                  </p>
+<p className={`font-bold ${game.owned ? "text-secondary" : game.isFree ? "text-secondary" : "text-primary"}`}>
+  {game.owned ? "Owned" : game.isFree ? "Free" : formatIDR(game.price)}
+</p>
                   <div className="flex text-yellow-500 mt-1">
                     {[...Array(5)].map((_, idx) => (
                       <Star

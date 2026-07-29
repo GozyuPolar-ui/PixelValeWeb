@@ -99,13 +99,13 @@ export default function Hero({ games }: { games: GameSummary[] }) {
                       {game.title}
                     </h4>
                     <p className="text-xs text-on-surface-variant mb-2">{game.genre}</p>
-                      <span
-                      className={`font-bold ${
-                        game.isFree ? "text-secondary" : "text-primary"
-                      }`}
-                    >
-                      {game.isFree ? "Free" : formatIDR(game.price)}
-                    </span>
+<span
+  className={`font-bold ${
+    game.owned ? "text-secondary" : game.isFree ? "text-secondary" : "text-primary"
+  }`}
+>
+  {game.owned ? "Owned" : game.isFree ? "Free" : formatIDR(game.price)}
+</span>
                   </div>
                 </motion.div>
               </Link>

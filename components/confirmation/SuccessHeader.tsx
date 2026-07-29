@@ -3,7 +3,9 @@
 import { motion } from "framer-motion";
 import { CheckCircle2, PackageOpen } from "lucide-react";
 
-export default function SuccessHeader() {
+export default function SuccessHeader({ status }: { status: string }) {
+  const isPaid = status === "paid";
+
   return (
     <>
       <div className="flex items-center justify-center gap-4 mb-16 max-w-lg mx-auto">
@@ -44,7 +46,7 @@ export default function SuccessHeader() {
           transition={{ delay: 0.2 }}
           className="text-3xl md:text-4xl font-display text-ink-rich mb-4"
         >
-          Thank you for your purchase!
+          {isPaid ? "Thank you for your purchase!" : "Payment is being processed"}
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 12 }}
@@ -52,7 +54,9 @@ export default function SuccessHeader() {
           transition={{ delay: 0.3 }}
           className="text-lg text-ink-muted"
         >
-          Your adventure in Pixelvale begins now.
+          {isPaid
+            ? "Your adventure in Pixelvale begins now."
+            : "We'll update your library as soon as the payment is confirmed."}
         </motion.p>
       </section>
     </>

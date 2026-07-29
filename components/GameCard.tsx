@@ -34,8 +34,8 @@ export default function GameCard({ game, index }: { game: GameSummary; index: nu
         </h4>
         <div className="flex justify-between items-center mt-1">
           <p className="text-xs text-on-surface-variant">{game.genre}</p>
-          <p className={`font-bold ${game.isFree ? "text-secondary" : "text-primary"}`}>
-            {game.isFree ? "Free" : formatIDR(game.price)}
+<p className={`font-bold ${game.owned ? "text-secondary" : game.isFree ? "text-secondary" : "text-primary"}`}>
+            {game.owned ? "Owned" : game.isFree ? "Free" : formatIDR(game.price)}
           </p>
         </div>
       </motion.div>

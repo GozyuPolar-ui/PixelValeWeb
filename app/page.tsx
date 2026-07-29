@@ -11,10 +11,23 @@ import { GameSummary } from "@/lib/types";
 export default async function Home() {
   const supabase = await createServerSupabaseClient();
 
-  const { data: rows } = await supabase
+const { data: rows } = await supabase
     .from("games")
     .select("*")
     .order("created_at", { ascending: false });
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let ownedIds = new Set<string>();
+  if (user) {
+    const { data: libraryRows } = await supabase
+      .from("user_library")
+      .select("game_id")
+      .eq("user_id", user.id);
+    ownedIds = new Set((libraryRows ?? []).map((r) => r.game_id));
+  }
 
   const games: GameSummary[] = (rows ?? []).map((g) => ({
     id: g.id,
@@ -27,6 +40,7 @@ export default async function Home() {
     rating: g.rating ?? 0,
     reviewCount: g.review_count ?? 0,
     tagline: g.description ? String(g.description).split(/\n/)[0].trim() : "",
+    owned: ownedIds.has(g.id),
   }));
 
   const { data: articleRows } = await supabase
