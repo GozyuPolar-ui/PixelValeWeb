@@ -20,16 +20,18 @@ export default function Navbar({ active = "Store", showLauncher = true }: Navbar
   const [scrolled, setScrolled] = useState(false);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
-  const supabase = createClient();
   const [showSearch, setShowSearch] = useState(false);
+  const supabase = createClient();
 
+  // 1. Scroll listener
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-useEffect(() => {
+  // 2. Fetch User & Auth Listener
+  useEffect(() => {
     const getUser = async () => {
       const {
         data: { user },
@@ -62,7 +64,26 @@ useEffect(() => {
     });
 
     return () => authListener.subscription.unsubscribe();
-  }, []);
+  }, [supabase]);
+
+  // 3. Heartbeat: update last_seen (dipisah jadi useEffect mandiri di top-level)
+  useEffect(() => {
+    const beat = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase
+        .from("profiles")
+        .update({ last_seen: new Date().toISOString() })
+        .eq("id", user.id);
+    };
+
+    beat(); // panggil pertama kali saat render
+    const id = setInterval(beat, 60_000); // ulang tiap 1 menit
+    return () => clearInterval(id);
+  }, [supabase]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -79,14 +100,14 @@ useEffect(() => {
       }`}
     >
       <div className="flex justify-between items-center h-16 px-6 md:px-16 max-w-container-max mx-auto">
-<div className="flex items-center gap-3">
-  <div className="relative h-9 w-9 rounded overflow-hidden shrink-0">
-    <Image src="/PixelVale.jpeg" alt="Pixelvale" fill className="object-cover" />
-  </div>
-  <span className="text-xl font-display font-bold text-primary">
-    Pixelvale Store
-  </span>
-</div>
+        <div className="flex items-center gap-3">
+          <div className="relative h-9 w-9 rounded overflow-hidden shrink-0">
+            <Image src="/PixelVale.jpeg" alt="Pixelvale" fill className="object-cover" />
+          </div>
+          <span className="text-xl font-display font-bold text-primary">
+            Pixelvale Store
+          </span>
+        </div>
 
         <div className="hidden md:flex items-center gap-8">
           {links.map((link) => (
@@ -117,7 +138,7 @@ useEffect(() => {
         </div>
 
         <div className="flex items-center gap-4">
-<button
+          <button
             onClick={() => setShowSearch(true)}
             className="p-2 text-on-surface-variant hover:text-primary transition-colors"
           >

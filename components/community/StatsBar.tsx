@@ -2,11 +2,16 @@
 
 import { motion } from "framer-motion";
 import { Users, MessageSquare, Circle } from "lucide-react";
-import { communityStats } from "@/lib/data";
+
+type Stat = {
+  icon: "Users" | "MessageSquare" | "Circle";
+  value: string;
+  label: string;
+};
 
 const iconMap = { Users, MessageSquare, Circle };
 
-export default function StatsBar() {
+export default function StatsBar({ stats }: { stats: Stat[] }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -14,8 +19,8 @@ export default function StatsBar() {
       transition={{ delay: 0.2 }}
       className="bg-paper-dark p-6 mb-12 rounded-xl flex flex-wrap gap-12 items-center"
     >
-      {communityStats.map((stat, i) => {
-        const Icon = iconMap[stat.icon as keyof typeof iconMap];
+      {stats.map((stat, i) => {
+        const Icon = iconMap[stat.icon];
         return (
           <div key={stat.label} className="flex items-center gap-6">
             <div className="flex items-center gap-3">
@@ -28,7 +33,7 @@ export default function StatsBar() {
                 <p className="text-xs text-ink-muted">{stat.label}</p>
               </div>
             </div>
-            {i < communityStats.length - 1 && (
+            {i < stats.length - 1 && (
               <div className="hidden md:block w-px h-10 bg-outline-variant" />
             )}
           </div>

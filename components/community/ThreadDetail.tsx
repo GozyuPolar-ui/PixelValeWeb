@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { timeAgo } from "@/lib/utils";
 import { Thread } from "./ThreadCard";
+import ReactMarkdown from "react-markdown";
 
 type Reply = {
   id: string;
@@ -114,6 +115,7 @@ export default function ThreadDetail({
       </Link>
 
       <div className="border border-surface-variant rounded-xl p-8 mb-8">
+        {/* Author Header */}
         <div className="flex items-center gap-3 mb-4">
           <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-surface-container shrink-0">
             <Image src={avatar} alt={authorName} fill className="object-cover" />
@@ -132,9 +134,41 @@ export default function ThreadDetail({
           )}
         </div>
 
-        <h1 className="text-2xl md:text-3xl font-display text-ink-rich mb-4">{thread.title}</h1>
-        <p className="text-ink-rich leading-relaxed whitespace-pre-wrap mb-6">{thread.content}</p>
+        {/* Cover Image */}
+        {thread.cover_url && (
+          <div className="relative w-full h-56 md:h-72 rounded-lg overflow-hidden mb-6 bg-surface-container">
+            <Image
+              src={thread.cover_url}
+              alt={thread.title}
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+        )}
 
+        {/* Title & Content */}
+        <h1 className="text-2xl md:text-3xl font-display text-ink-rich mb-4">{thread.title}</h1>
+        <div className="prose prose-sm max-w-none text-ink-rich mb-6">
+  <ReactMarkdown
+    components={{
+      img: ({ src, alt }) => (
+        <span className="block relative w-full h-56 md:h-72 my-4 rounded-lg overflow-hidden bg-surface-container">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src || ""}
+            alt={alt || ""}
+            className="w-full h-full object-cover"
+          />
+        </span>
+      ),
+    }}
+  >
+    {thread.content}
+  </ReactMarkdown>
+</div>
+
+        {/* Actions (Like & Reply count) */}
         <div className="flex items-center gap-4">
           <button
             onClick={handleLike}
