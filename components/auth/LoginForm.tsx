@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Lock, LogIn, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, LogIn, Eye, EyeOff, Send, CheckCircle2, ArrowLeft } from "lucide-react";
 import { GoogleIcon, SteamIcon, DiscordIcon } from "./BrandIcons";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
+  const [mode, setMode] = useState<"login" | "forgot" | "forgot-sent">("login");
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,6 +31,23 @@ export default function LoginForm() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback?next=/auth/update-password`,
+    });
+
+    setLoading(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    setMode("forgot-sent");
+  };
+
   const handleDiscordLogin = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "discord",
@@ -43,6 +61,73 @@ export default function LoginForm() {
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
   };
+
+  if (mode === "forgot-sent") {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-8 space-y-4">
+        <CheckCircle2 size={48} className="text-primary mx-auto" />
+        <h3 className="text-lg font-display text-ink-rich">Check your inbox</h3>
+        <p className="text-sm text-ink-muted max-w-xs mx-auto">
+          We sent a password reset link to <span className="font-bold">{email}</span>.
+        </p>
+        <button
+          onClick={() => setMode("login")}
+          className="text-xs text-primary hover:underline flex items-center gap-1 mx-auto"
+        >
+          <ArrowLeft size={14} /> Back to Log In
+        </button>
+      </motion.div>
+    );
+  }
+
+  if (mode === "forgot") {
+    return (
+      <motion.form
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="space-y-6"
+        onSubmit={handleForgotPassword}
+      >
+        <div>
+          <h3 className="text-lg font-display text-ink-rich mb-1">Reset your password</h3>
+          <p className="text-xs text-ink-muted">
+            Enter the email tied to your account and we'll send you a reset link.
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs text-ink-muted uppercase tracking-wider flex items-center gap-2 font-bold">
+            <Mail size={14} /> Email Address
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="explorer@pixelvale.com"
+            className="w-full bg-paper-dark border-none rounded-lg p-3 focus:ring-2 focus:ring-primary/50 outline-none"
+          />
+        </div>
+
+        {error && <p className="text-red-600 text-xs bg-red-50 p-3 rounded-lg">{error}</p>}
+
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          disabled={loading}
+          className="w-full bg-primary text-white font-display py-4 rounded-lg hover:bg-primary/90 transition-all flex items-center justify-center gap-3 disabled:opacity-60"
+        >
+          <Send size={18} /> {loading ? "Sending..." : "Send Reset Link"}
+        </motion.button>
+
+        <button
+          type="button"
+          onClick={() => setMode("login")}
+          className="text-xs text-ink-muted hover:text-primary flex items-center gap-1 mx-auto"
+        >
+          <ArrowLeft size={14} /> Back to Log In
+        </button>
+      </motion.form>
+    );
+  }
 
   return (
     <motion.form
@@ -69,12 +154,16 @@ export default function LoginForm() {
           <label className="text-xs text-ink-muted uppercase tracking-wider flex items-center gap-2 font-bold">
             <Lock size={14} /> Password
           </label>
-          <a href="#" className="text-xs text-primary hover:underline">
+          <button
+            type="button"
+            onClick={() => setMode("forgot")}
+            className="text-xs text-primary hover:underline"
+          >
             Forgot?
-          </a>
+          </button>
         </div>
         <div className="relative">
-            <input
+          <input
             type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -91,9 +180,7 @@ export default function LoginForm() {
         </div>
       </div>
 
-{error && (
-        <p className="text-red-600 text-xs bg-red-50 p-3 rounded-lg">{error}</p>
-      )}
+      {error && <p className="text-red-600 text-xs bg-red-50 p-3 rounded-lg">{error}</p>}
 
       <motion.button
         whileTap={{ scale: 0.97 }}
@@ -113,7 +200,7 @@ export default function LoginForm() {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-<motion.button
+        <motion.button
           whileHover={{ y: -2 }}
           whileTap={{ scale: 0.95 }}
           type="button"

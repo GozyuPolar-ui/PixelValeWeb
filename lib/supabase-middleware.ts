@@ -28,7 +28,7 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Halaman yang TETAP BISA diakses tanpa login
-  const publicPaths = ['/login', '/auth/callback'];
+  const publicPaths = ['/login', '/auth/callback', '/auth/update-password'];
   const isPublic = publicPaths.some((path) => request.nextUrl.pathname.startsWith(path));
 
   if (!isPublic && !user) {
