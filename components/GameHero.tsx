@@ -7,11 +7,16 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase";
 import { GameDetailData } from "@/lib/types";
 import { formatIDR } from "@/lib/format";
+import { useToast } from "@/components/Toast";
+import { useRouter } from "next/navigation";
 
 export default function GameHero({ game }: { game: GameDetailData }) {
   const [wishlisted, setWishlisted] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [loading, setLoading] = useState(false);
   const supabase = createClient();
+  const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     const checkWishlist = async () => {
@@ -30,17 +35,50 @@ export default function GameHero({ game }: { game: GameDetailData }) {
       setChecking(false);
     };
     checkWishlist();
-  }, [game.id]);
+  }, [game.id, supabase]);
 
   const handleWishlist = async () => {
-    if (wishlisted || checking) return;
+    if (checking || loading) return;
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return;
 
-    await supabase.from("user_wishlist").insert({ user_id: user.id, game_id: game.id });
-    setWishlisted(true);
+    if (!user) {
+      toast("Login dulu untuk menambahkan ke wishlist", "info");
+      router.push("/login");
+      return;
+    }
+
+    setLoading(true);
+
+    if (wishlisted) {
+      const { error } = await supabase
+        .from("user_wishlist")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("game_id", game.id);
+
+      if (error) {
+        toast("Gagal menghapus dari wishlist", "error");
+      } else {
+        setWishlisted(false);
+        toast("Dihapus dari wishlist", "info");
+      }
+    } else {
+      const { error } = await supabase
+        .from("user_wishlist")
+        .insert({ user_id: user.id, game_id: game.id });
+
+      if (error) {
+        toast("Gagal menambahkan ke wishlist", "error");
+      } else {
+        setWishlisted(true);
+        toast("Ditambahkan ke wishlist!", "success");
+      }
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -87,7 +125,7 @@ export default function GameHero({ game }: { game: GameDetailData }) {
         </div>
       </motion.div>
 
-      <div className="flex gap-4 mt-8">
+      <div className="flex flex-wrap gap-4 mt-8">
         <motion.a
           href="#download-panel"
           whileTap={{ scale: 0.95 }}
@@ -99,10 +137,15 @@ export default function GameHero({ game }: { game: GameDetailData }) {
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={handleWishlist}
-          disabled={wishlisted || checking}
-          className="border-2 border-secondary text-secondary px-8 py-4 rounded-lg font-bold hover:bg-secondary/5 transition-all flex items-center gap-2 disabled:opacity-60"
+          disabled={checking || loading}
+          className={`border-2 px-8 py-4 rounded-lg font-bold transition-all flex items-center gap-2 disabled:opacity-60 ${
+            wishlisted
+              ? "border-primary bg-primary/10 text-primary"
+              : "border-secondary text-secondary hover:bg-secondary/5"
+          }`}
         >
-          <Bookmark size={18} /> {wishlisted ? "Added!" : "Add to Wishlist"}
+          <Bookmark size={18} className={wishlisted ? "fill-primary" : ""} />
+          {loading ? "..." : wishlisted ? "In Wishlist" : "Add to Wishlist"}
         </motion.button>
       </div>
     </section>

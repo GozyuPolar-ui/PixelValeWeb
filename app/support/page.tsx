@@ -6,9 +6,16 @@ import FaqAccordion from "@/components/support/FaqAccordion";
 import AskAI from "@/components/support/AskAI";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Support",
+  description: "Help center, policies, and contact for Pixelvale Store.",
+};
 export default async function SupportPage() {
   const supabase = await createServerSupabaseClient();
 
+  
   const { data: articles } = await supabase
     .from("help_articles")
     .select("id, title, summary, category, created_at")

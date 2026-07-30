@@ -6,6 +6,7 @@ import { Mail, Lock, LogIn, Eye, EyeOff, Send, CheckCircle2, ArrowLeft } from "l
 import { GoogleIcon, SteamIcon, DiscordIcon } from "./BrandIcons";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/Toast";
 
 export default function LoginForm() {
   const [mode, setMode] = useState<"login" | "forgot" | "forgot-sent">("login");
@@ -14,18 +15,24 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  
   const router = useRouter();
   const supabase = createClient();
+  const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
+    
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
+    
     if (error) {
       setError(error.message);
+      toast(error.message, "error");
     } else {
+      toast("Welcome back, explorer!", "success");
       router.push("/");
       router.refresh();
     }
@@ -43,8 +50,11 @@ export default function LoginForm() {
     setLoading(false);
     if (error) {
       setError(error.message);
+      toast(error.message, "error");
       return;
     }
+
+    toast("Reset link sent to your email", "success");
     setMode("forgot-sent");
   };
 
@@ -66,9 +76,9 @@ export default function LoginForm() {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-8 space-y-4">
         <CheckCircle2 size={48} className="text-primary mx-auto" />
-        <h3 className="text-lg font-display text-ink-rich">Check your inbox</h3>
-        <p className="text-sm text-ink-muted max-w-xs mx-auto">
-          We sent a password reset link to <span className="font-bold">{email}</span>.
+        <h3 className="text-lg font-display text-white">Check your inbox</h3>
+        <p className="text-sm text-white/70 max-w-xs mx-auto">
+          We sent a password reset link to <span className="font-bold text-white">{email}</span>.
         </p>
         <button
           onClick={() => setMode("login")}
@@ -89,14 +99,14 @@ export default function LoginForm() {
         onSubmit={handleForgotPassword}
       >
         <div>
-          <h3 className="text-lg font-display text-ink-rich mb-1">Reset your password</h3>
-          <p className="text-xs text-ink-muted">
+          <h3 className="text-lg font-display text-white mb-1">Reset your password</h3>
+          <p className="text-xs text-white/70">
             Enter the email tied to your account and we'll send you a reset link.
           </p>
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs text-ink-muted uppercase tracking-wider flex items-center gap-2 font-bold">
+          <label className="text-xs text-white/70 uppercase tracking-wider flex items-center gap-2 font-bold">
             <Mail size={14} /> Email Address
           </label>
           <input
@@ -104,11 +114,11 @@ export default function LoginForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="explorer@pixelvale.com"
-            className="w-full bg-paper-dark border-none rounded-lg p-3 focus:ring-2 focus:ring-primary/50 outline-none"
+            className="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white placeholder:text-white/40 focus:ring-2 focus:ring-primary/50 outline-none"
           />
         </div>
 
-        {error && <p className="text-red-600 text-xs bg-red-50 p-3 rounded-lg">{error}</p>}
+        {error && <p className="text-red-200 text-xs bg-red-500/20 p-3 rounded-lg">{error}</p>}
 
         <motion.button
           whileTap={{ scale: 0.97 }}
@@ -121,7 +131,7 @@ export default function LoginForm() {
         <button
           type="button"
           onClick={() => setMode("login")}
-          className="text-xs text-ink-muted hover:text-primary flex items-center gap-1 mx-auto"
+          className="text-xs text-white/70 hover:text-primary flex items-center gap-1 mx-auto"
         >
           <ArrowLeft size={14} /> Back to Log In
         </button>
@@ -137,7 +147,7 @@ export default function LoginForm() {
       onSubmit={handleLogin}
     >
       <div className="space-y-1">
-        <label className="text-xs text-ink-muted uppercase tracking-wider flex items-center gap-2 font-bold">
+        <label className="text-xs text-white/70 uppercase tracking-wider flex items-center gap-2 font-bold">
           <Mail size={14} /> Email Address
         </label>
         <input
@@ -145,13 +155,13 @@ export default function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="explorer@pixelvale.com"
-          className="w-full bg-paper-dark border-none rounded-lg p-3 focus:ring-2 focus:ring-primary/50 outline-none"
+          className="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white placeholder:text-white/40 focus:ring-2 focus:ring-primary/50 outline-none"
         />
       </div>
 
       <div className="space-y-1">
         <div className="flex justify-between items-center">
-          <label className="text-xs text-ink-muted uppercase tracking-wider flex items-center gap-2 font-bold">
+          <label className="text-xs text-white/70 uppercase tracking-wider flex items-center gap-2 font-bold">
             <Lock size={14} /> Password
           </label>
           <button
@@ -168,19 +178,19 @@ export default function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
-            className="w-full bg-paper-dark border-none rounded-lg p-3 pr-10 focus:ring-2 focus:ring-primary/50 outline-none"
+            className="w-full bg-white/10 border border-white/20 rounded-lg p-3 pr-10 text-white placeholder:text-white/40 focus:ring-2 focus:ring-primary/50 outline-none"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-3 text-ink-muted hover:text-primary transition-colors"
+            className="absolute right-3 top-3 text-white/70 hover:text-primary transition-colors"
           >
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
         </div>
       </div>
 
-      {error && <p className="text-red-600 text-xs bg-red-50 p-3 rounded-lg">{error}</p>}
+      {error && <p className="text-red-200 text-xs bg-red-500/20 p-3 rounded-lg">{error}</p>}
 
       <motion.button
         whileTap={{ scale: 0.97 }}
@@ -190,13 +200,12 @@ export default function LoginForm() {
         <LogIn size={20} /> {loading ? "Logging in..." : "Log In"}
       </motion.button>
 
-      <div className="relative py-4">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-surface-variant" />
-        </div>
-        <div className="relative flex justify-center text-xs">
-          <span className="px-4 bg-white text-ink-muted">OR CONTINUE WITH</span>
-        </div>
+      <div className="flex items-center my-6 gap-3">
+        <div className="flex-1 border-t border-white/20" />
+        <span className="text-[11px] font-bold tracking-wider text-white/50 uppercase whitespace-nowrap">
+          OR CONTINUE WITH
+        </span>
+        <div className="flex-1 border-t border-white/20" />
       </div>
 
       <div className="grid grid-cols-3 gap-4">
@@ -205,7 +214,7 @@ export default function LoginForm() {
           whileTap={{ scale: 0.95 }}
           type="button"
           onClick={handleGoogleLogin}
-          className="flex items-center justify-center p-3 border border-surface-variant rounded-lg hover:bg-paper-dark transition-colors"
+          className="flex items-center justify-center p-3 border border-white/20 rounded-lg hover:bg-white/10 transition-colors"
         >
           <GoogleIcon size={22} />
         </motion.button>
@@ -213,7 +222,7 @@ export default function LoginForm() {
           whileHover={{ y: -2 }}
           whileTap={{ scale: 0.95 }}
           type="button"
-          className="flex items-center justify-center p-3 border border-surface-variant rounded-lg hover:bg-paper-dark transition-colors opacity-50 cursor-not-allowed"
+          className="flex items-center justify-center p-3 border border-white/20 rounded-lg hover:bg-white/10 transition-colors opacity-50 cursor-not-allowed"
           title="Coming soon"
         >
           <SteamIcon size={22} />
@@ -223,7 +232,7 @@ export default function LoginForm() {
           whileTap={{ scale: 0.95 }}
           type="button"
           onClick={handleDiscordLogin}
-          className="flex items-center justify-center p-3 border border-surface-variant rounded-lg hover:bg-paper-dark transition-colors"
+          className="flex items-center justify-center p-3 border border-white/20 rounded-lg hover:bg-white/10 transition-colors"
         >
           <DiscordIcon size={22} />
         </motion.button>

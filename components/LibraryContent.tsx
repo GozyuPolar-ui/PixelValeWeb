@@ -3,6 +3,7 @@
 import { useState } from "react";
 import LibraryFilters from "./LibraryFilters";
 import LibraryGameCard from "./LibraryGameCard";
+import EmptyState from "./EmptyState";
 
 export default function LibraryContent({ games }: { games: any[] }) {
   const [activeTab, setActiveTab] = useState("All Games");
@@ -17,13 +18,15 @@ export default function LibraryContent({ games }: { games: any[] }) {
   return (
     <>
       <LibraryFilters active={activeTab} onChange={setActiveTab} />
+
       {sortedGames.length === 0 ? (
-        <div className="text-center py-24">
-          <p className="text-ink-muted mb-4">Library kamu masih kosong.</p>
-          <a href="/" className="text-primary font-bold hover:underline">
-            Jelajahi Store →
-          </a>
-        </div>
+        <EmptyState
+          icon="library"
+          title="Your library is empty"
+          description="You don't own any games yet. Explore the Store and start building your collection."
+          actionLabel="Explore Store"
+          actionHref="/"
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {sortedGames.map((entry, i) => (

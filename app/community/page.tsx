@@ -10,6 +10,13 @@ import SocialLinks from "@/components/community/SocialLinks";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { Thread } from "@/components/community/ThreadCard";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Community",
+  description: "Join discussions, share wisdom, and connect with fellow explorers in the Vale.",
+};
+
 function getBadge(total: number, rank: number) {
   if (rank === 0) return { badge: "Sage", badgeColor: "bg-primary/10 text-primary", highlighted: true };
   if (total >= 10) return { badge: "Guide", badgeColor: "bg-secondary-fixed text-secondary", highlighted: false };
@@ -20,6 +27,7 @@ function getBadge(total: number, rank: number) {
 export default async function CommunityPage() {
   const supabase = await createServerSupabaseClient();
 
+  
   // Hitung timestamp 5 menit yang lalu dari waktu server saat ini
   const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 

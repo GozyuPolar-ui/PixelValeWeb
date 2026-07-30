@@ -13,6 +13,43 @@ import { GameDetailData, GameSummary } from "@/lib/types";
 import { notFound } from "next/navigation";
 import { unstable_cache } from "next/cache";
 
+import type { Metadata } from "next";
+
+type Props = { params: { slug: string } };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const supabase = createPublicSupabaseClient();
+  const { data: game } = await supabase
+    .from("games")
+    .select("title, description, image_url, genre")
+    .ilike("slug", params.slug)
+    .single();
+
+  if (!game) {
+    return { title: "Game not found" };
+  }
+
+  const description = game.description
+    ? String(game.description).split(/\n/)[0].trim().slice(0, 160)
+    : `Play ${game.title} on Pixelvale Store`;
+
+  return {
+    title: game.title,
+    description,
+    openGraph: {
+      title: game.title,
+      description,
+      images: game.image_url ? [{ url: game.image_url }] : [],
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: game.title,
+      description,
+      images: game.image_url ? [game.image_url] : [],
+    },
+  };
+}
 // Data publik (game info, reviews+profiles, related games) — sama buat semua orang, di-cache 60 detik
 const getPublicGameData = unstable_cache(
   async (slug: string) => {

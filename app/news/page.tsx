@@ -3,6 +3,13 @@ import Footer from "@/components/Footer";
 import NewsContent from "@/components/news/NewsContent";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "News",
+  description: "Latest updates, articles, and stories from Pixelvale Store.",
+};
+
 export default async function NewsPage() {
   const supabase = await createServerSupabaseClient();
 

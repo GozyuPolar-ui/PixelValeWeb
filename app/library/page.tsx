@@ -6,6 +6,12 @@ import LibraryContent from "@/components/LibraryContent";
 import DiscoveryPrompt from "@/components/DiscoveryPrompt";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "My Library",
+  description: "Your collection of games in the Vale.",
+};
 export default async function LibraryPage() {
   const supabase = await createServerSupabaseClient();
 

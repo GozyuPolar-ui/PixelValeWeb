@@ -11,56 +11,60 @@ export default function LoginPage() {
   const [tab, setTab] = useState<"login" | "register">("login");
 
   return (
-    <div className="min-h-screen flex flex-col bg-surface">
-      <header className="fixed top-0 w-full z-50 h-16 flex items-center justify-center bg-surface/80 backdrop-blur-md border-b-4 border-surface-variant">
-        <span className="text-xl font-display text-primary">Pixelvale</span>
+    <div className="relative min-h-screen w-full overflow-hidden">
+      {/* Full-bleed background slideshow */}
+      <AuthHero />
+
+      {/* Header transparan */}
+      <header className="fixed top-0 w-full z-50 h-16 flex items-center justify-center bg-black/20 backdrop-blur-md border-b border-white/10">
+        <span className="text-xl font-display text-white drop-shadow-md">Pixelvale</span>
       </header>
 
-      <main className="flex-grow flex pt-16">
-        <div className="w-full flex">
-          <AuthHero />
+{/* Floating glass card di kiri */}
+<main className="relative z-10 min-h-screen flex items-center justify-start px-6 md:px-16 lg:px-24 py-20">
+  <motion.div
+    initial={{ opacity: 0, x: -24, scale: 0.97 }}
+    animate={{ opacity: 1, x: 0, scale: 1 }}
+    transition={{ duration: 0.5, ease: "easeOut" }}
+    className="w-full max-w-md"
+  >
+    {/* Glassmorphism card */}
+    <div className="bg-white/15 backdrop-blur-2xl border border-white/25 rounded-2xl shadow-2xl p-8 text-white">
+      {/* Tabs */}
+      <div className="flex border-b border-white/20 mb-8">
+        <button
+          onClick={() => setTab("login")}
+          className={`flex-1 py-3.5 font-display transition-colors ${
+            tab === "login"
+              ? "text-white border-b-2 border-primary"
+              : "text-white/60 hover:text-white"
+          }`}
+        >
+          Log In
+        </button>
+        <button
+          onClick={() => setTab("register")}
+          className={`flex-1 py-3.5 font-display transition-colors ${
+            tab === "register"
+              ? "text-white border-b-2 border-primary"
+              : "text-white/60 hover:text-white"
+          }`}
+        >
+          Register
+        </button>
+      </div>
 
-          <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-16 bg-surface-container-low">
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="w-full max-w-md bg-white p-8 rounded-lg border border-surface-variant shadow-pixel"
-            >
-              <div className="flex border-b border-surface-variant mb-8">
-                <button
-                  onClick={() => setTab("login")}
-                  className={`flex-1 py-4 font-display transition-colors ${
-                    tab === "login"
-                      ? "text-primary border-b-2 border-primary"
-                      : "text-ink-muted hover:text-primary"
-                  }`}
-                >
-                  Log In
-                </button>
-                <button
-                  onClick={() => setTab("register")}
-                  className={`flex-1 py-4 font-display transition-colors ${
-                    tab === "register"
-                      ? "text-primary border-b-2 border-primary"
-                      : "text-ink-muted hover:text-primary"
-                  }`}
-                >
-                  Register
-                </button>
-              </div>
+      {tab === "login" ? <LoginForm /> : <RegisterForm />}
 
-              {tab === "login" ? <LoginForm /> : <RegisterForm />}
-
-              <div className="mt-8 pt-6 border-t border-surface-variant flex items-center justify-center gap-4">
-                <Sprout size={20} className="text-primary" />
-                <p className="text-xs text-ink-muted italic">
-                  &quot;A small seed today, a forest tomorrow.&quot;
-                </p>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </main>
+      <div className="mt-8 pt-6 border-t border-white/15 flex items-center justify-center gap-3">
+        <Sprout size={18} className="text-primary" />
+        <p className="text-xs text-white/70 italic">
+          &quot;"Don't be sorry, be better."&quot;
+        </p>
+      </div>
+    </div>
+  </motion.div>
+</main>
     </div>
   );
 }
