@@ -2,19 +2,30 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GameCard from "@/components/GameCard";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createPublicSupabaseClient } from "@/lib/supabase-public";
+import { unstable_cache } from "next/cache";
+
+const getGamesByGenre = unstable_cache(
+  async (genreName: string) => {
+    const supabase = createPublicSupabaseClient();
+    const { data: games } = await supabase
+      .from("games")
+      .select("id, slug, title, genre, price, is_free, image_url")
+      .ilike("genre", `%${genreName}%`);
+    return games;
+  },
+  ["games-by-genre"],
+  { revalidate: 60 }
+);
 
 export default async function GenrePage({ params }: { params: { name: string } }) {
   const supabase = await createServerSupabaseClient();
   const genreName = decodeURIComponent(params.name);
 
-  const { data: games } = await supabase
-    .from("games")
-    .select("id, slug, title, genre, price, is_free, image_url")
-    .ilike("genre", `%${genreName}%`);
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const [games, { data: { user } }] = await Promise.all([
+    getGamesByGenre(genreName),
+    supabase.auth.getUser(),
+  ]);
 
   let ownedIds = new Set<string>();
   if (user) {

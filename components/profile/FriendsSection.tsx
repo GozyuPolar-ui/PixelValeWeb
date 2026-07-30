@@ -6,7 +6,9 @@ import { Users, UserPlus, Check, X } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import FriendPreviewModal from "./FriendPreviewModal";
+import dynamic from "next/dynamic";
+
+const FriendPreviewModal = dynamic(() => import("./FriendPreviewModal"));
 
 type Friend = {
   friendshipId: string;

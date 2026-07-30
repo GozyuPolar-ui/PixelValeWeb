@@ -8,8 +8,58 @@ import SystemRequirements from "@/components/SystemRequirements";
 import CommunityReviews from "@/components/CommunityReviews";
 import RelatedGames from "@/components/RelatedGames";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createPublicSupabaseClient } from "@/lib/supabase-public";
 import { GameDetailData, GameSummary } from "@/lib/types";
 import { notFound } from "next/navigation";
+import { unstable_cache } from "next/cache";
+
+// Data publik (game info, reviews+profiles, related games) — sama buat semua orang, di-cache 60 detik
+const getPublicGameData = unstable_cache(
+  async (slug: string) => {
+    const supabase = createPublicSupabaseClient();
+
+    const { data: game } = await supabase
+      .from("games")
+      .select("*")
+      .ilike("slug", slug)
+      .single();
+
+    if (!game) return { game: null, reviewsWithProfiles: [], relatedRaw: [] };
+
+    const [{ data: reviews }, { data: relatedRaw }] = await Promise.all([
+      supabase
+        .from("reviews")
+        .select("id, rating, review_text, user_id")
+        .eq("game_id", game.id)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("games")
+        .select("id, slug, title, genre, price, is_free, image_url")
+        .neq("id", game.id)
+        .limit(4),
+    ]);
+
+    let reviewsWithProfiles: any[] = [];
+    if (reviews && reviews.length > 0) {
+      const userIds = reviews.map((r) => r.user_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, username, avatar_url")
+        .in("id", userIds);
+
+      const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
+
+      reviewsWithProfiles = reviews.map((r) => ({
+        ...r,
+        profiles: profileMap.get(r.user_id) || null,
+      }));
+    }
+
+    return { game, reviewsWithProfiles, relatedRaw: relatedRaw || [] };
+  },
+  ["game-detail"],
+  { revalidate: 60 }
+);
 
 export default async function GameDetailPage({
   params,
@@ -18,47 +68,14 @@ export default async function GameDetailPage({
 }) {
   const supabase = await createServerSupabaseClient();
 
-  const { data: game } = await supabase
-    .from("games")
-    .select("*")
-    .ilike("slug", params.slug)
-    .single();
+  const [{ game, reviewsWithProfiles, relatedRaw }, { data: { user: currentUser } }] =
+    await Promise.all([getPublicGameData(params.slug), supabase.auth.getUser()]);
 
   if (!game) {
     notFound();
   }
 
-  let reviewsWithProfiles: any[] = [];
-
-  const { data: reviews } = await supabase
-    .from("reviews")
-    .select("id, rating, review_text, user_id")
-    .eq("game_id", game.id)
-    .order("created_at", { ascending: false });
-
-  if (reviews && reviews.length > 0) {
-    const userIds = reviews.map((r) => r.user_id);
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, username, avatar_url")
-      .in("id", userIds);
-
-    const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
-
-    reviewsWithProfiles = reviews.map((r) => ({
-      ...r,
-      profiles: profileMap.get(r.user_id) || null,
-    }));
-  }
-
-  const {
-    data: { user: currentUser },
-  } = await supabase.auth.getUser();
-
-  const hasReviewed = currentUser
-    ? reviewsWithProfiles.some((r) => r.user_id === currentUser.id)
-    : false;
-
+  // Owned check — personal per user, nggak di-cache
   let ownedIds = new Set<string>();
   if (currentUser) {
     const { data: libraryRows } = await supabase
@@ -67,6 +84,10 @@ export default async function GameDetailPage({
       .eq("user_id", currentUser.id);
     ownedIds = new Set((libraryRows ?? []).map((r) => r.game_id));
   }
+
+  const hasReviewed = currentUser
+    ? reviewsWithProfiles.some((r) => r.user_id === currentUser.id)
+    : false;
 
   const avgRating =
     reviewsWithProfiles.length > 0
@@ -113,14 +134,7 @@ export default async function GameDetailPage({
     requirements: game.requirements ?? {},
   };
 
-  // Related games: game lain selain yang lagi dibuka
-  const { data: relatedRaw } = await supabase
-    .from("games")
-    .select("id, slug, title, genre, price, is_free, image_url")
-    .neq("id", game.id)
-    .limit(4);
-
-  const relatedGames: GameSummary[] = (relatedRaw || []).map((g) => ({
+  const relatedGames: GameSummary[] = relatedRaw.map((g: any) => ({
     id: g.id,
     slug: g.slug,
     title: g.title,

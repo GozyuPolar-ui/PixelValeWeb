@@ -6,20 +6,37 @@ import CommunityFavorites from "@/components/CommunityFavorites";
 import PlatformNews from "@/components/PlatformNews";
 import Footer from "@/components/Footer";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createPublicSupabaseClient } from "@/lib/supabase-public";
 import { GameSummary } from "@/lib/types";
+import { unstable_cache } from "next/cache";
+
+const getPublicHomeData = unstable_cache(
+  async () => {
+    const supabase = createPublicSupabaseClient();
+    const [{ data: rows }, { data: articleRows }] = await Promise.all([
+      supabase.from("games").select("*").order("created_at", { ascending: false }),
+      supabase
+        .from("articles")
+        .select("id, title, excerpt, category, image_url, created_at")
+        .order("created_at", { ascending: false })
+        .limit(2),
+    ]);
+    return { rows, articleRows };
+  },
+  ["home-public-data"],
+  { revalidate: 60 } // cache 60 detik — cukup fresh, tapi ngirit query berulang
+);
 
 export default async function Home() {
   const supabase = await createServerSupabaseClient();
 
-const { data: rows } = await supabase
-    .from("games")
-    .select("*")
-    .order("created_at", { ascending: false });
+  // Data publik (sama buat semua orang) diambil dari cache 60 detik
+  const [{ rows, articleRows }, { data: { user } }] = await Promise.all([
+    getPublicHomeData(),
+    supabase.auth.getUser(),
+  ]);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  // Step 2: owned check baru bisa jalan setelah tau user-nya siapa
   let ownedIds = new Set<string>();
   if (user) {
     const { data: libraryRows } = await supabase
@@ -42,12 +59,6 @@ const { data: rows } = await supabase
     tagline: g.description ? String(g.description).split(/\n/)[0].trim() : "",
     owned: ownedIds.has(g.id),
   }));
-
-  const { data: articleRows } = await supabase
-    .from("articles")
-    .select("id, title, excerpt, category, image_url, created_at")
-    .order("created_at", { ascending: false })
-    .limit(2);
 
   return (
     <>

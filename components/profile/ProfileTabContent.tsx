@@ -1,12 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import ProfileTabs from "./ProfileTabs";
-import RecentlyPlayedProfile from "./RecentlyPlayedProfile";
-import LibraryTab from "./LibraryTab";
-import WishlistTab from "./WishlistTab";
-import ReviewsTab from "./ReviewsTab";
-import AchievementsList from "./AchievementsList";
+
+const TabSkeleton = () => (
+  <div className="py-12 flex justify-center">
+    <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+  </div>
+);
+
+const RecentlyPlayedProfile = dynamic(() => import("./RecentlyPlayedProfile"), {
+  loading: TabSkeleton,
+});
+const LibraryTab = dynamic(() => import("./LibraryTab"), { loading: TabSkeleton });
+const WishlistTab = dynamic(() => import("./WishlistTab"), { loading: TabSkeleton });
+const ReviewsTab = dynamic(() => import("./ReviewsTab"), { loading: TabSkeleton });
+const AchievementsList = dynamic(() => import("./AchievementsList"), {
+  loading: TabSkeleton,
+});
 
 type LibraryGame = { id: string; hours_played: number; games: { title: string; genre: string; image_url: string } };
 type WishlistGame = { id: string; game_id: string; games: { title: string; genre: string; price: number; is_free: boolean; image_url: string } };
