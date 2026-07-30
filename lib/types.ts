@@ -6,6 +6,7 @@ export type GameDetailData = {
   reviewCount: number;
   price: number;
   isFree: boolean;
+  owned: boolean;
   heroImage: string;
   gallery: { type: "image" | "video"; image: string }[];
   description: string[];
@@ -23,13 +24,7 @@ export type GameDetailData = {
     mac: string | null;
     android: string | null;
   };
-  requirements: Record<
-    string,
-    {
-      minimum?: Record<string, string>;
-      recommended?: Record<string, string>;
-    }
-  >;
+  requirements: Record<string, { minimum?: Record<string, string>; recommended?: Record<string, string> }>;
 };
 
 export type GameSummary = {

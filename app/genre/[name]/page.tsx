@@ -12,6 +12,19 @@ export default async function GenrePage({ params }: { params: { name: string } }
     .select("id, slug, title, genre, price, is_free, image_url")
     .ilike("genre", `%${genreName}%`);
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let ownedIds = new Set<string>();
+  if (user) {
+    const { data: libraryRows } = await supabase
+      .from("user_library")
+      .select("game_id")
+      .eq("user_id", user.id);
+    ownedIds = new Set((libraryRows ?? []).map((r) => r.game_id));
+  }
+
   return (
     <>
       <Navbar />
@@ -32,10 +45,14 @@ export default async function GenrePage({ params }: { params: { name: string } }
                   id: game.id,
                   slug: game.slug,
                   title: game.title,
-                  genre: game.genre,
-                  price: game.is_free ? "Free" : `$${game.price}`,
-                  isFree: game.is_free,
-                  image: game.image_url,
+                  genre: game.genre ?? "",
+                  price: game.is_free ? 0 : Number(game.price ?? 0),
+                  isFree: !!game.is_free,
+                  image: game.image_url ?? "",
+                  rating: 0,
+                  reviewCount: 0,
+                  tagline: "",
+                  owned: ownedIds.has(game.id),
                 }}
                 index={i}
               />

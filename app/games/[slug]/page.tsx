@@ -59,6 +59,15 @@ export default async function GameDetailPage({
     ? reviewsWithProfiles.some((r) => r.user_id === currentUser.id)
     : false;
 
+  let ownedIds = new Set<string>();
+  if (currentUser) {
+    const { data: libraryRows } = await supabase
+      .from("user_library")
+      .select("game_id")
+      .eq("user_id", currentUser.id);
+    ownedIds = new Set((libraryRows ?? []).map((r) => r.game_id));
+  }
+
   const avgRating =
     reviewsWithProfiles.length > 0
       ? reviewsWithProfiles.reduce((sum, r) => sum + (r.rating || 0), 0) /
@@ -83,6 +92,7 @@ export default async function GameDetailPage({
     reviewCount: reviewsWithProfiles.length,
     price: game.is_free ? 0 : Number(game.price ?? 0),
     isFree: !!game.is_free,
+    owned: ownedIds.has(game.id),
     heroImage: game.image_url ?? gallery[0]?.image ?? "",
     gallery,
     description: descriptionParagraphs,
@@ -121,6 +131,7 @@ export default async function GameDetailPage({
     rating: 0,
     reviewCount: 0,
     tagline: "",
+    owned: ownedIds.has(g.id),
   }));
 
   return (
