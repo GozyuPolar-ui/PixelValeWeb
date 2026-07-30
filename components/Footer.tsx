@@ -14,7 +14,7 @@ const columns: { title: string; links: FooterLink[] }[] = [
       { label: "Download Launcher", href: "/library" },
       { label: "Store Policy", href: "/support/store-policy" },
       { label: "Gift Cards", href: null },
-      { label: "Career Opportunities", href: null },
+      { label: "Become a Developer", href: "/developers" },
     ],
   },
   {
@@ -22,7 +22,7 @@ const columns: { title: string; links: FooterLink[] }[] = [
     links: [
       { label: "Help Center", href: "/support" },
       { label: "Refund Policy", href: "/support/refund-policy" },
-      { label: "Server Status", href: null },
+      { label: "Server Status", href: "/support/server-status" },
       { label: "Contact Us", href: "/support/contact" },
     ],
   },
@@ -30,9 +30,9 @@ const columns: { title: string; links: FooterLink[] }[] = [
     title: "Developers",
     links: [
       { label: "Developer Portal", href: null },
-      { label: "Publish Your Game", href: "/support/contact" },
-      { label: "API Documentation", href: null },
-      { label: "Brand Assets", href: null },
+      { label: "Publish Your Game", href: "/developers" },
+      { label: "API Documentation", href: "/support/api-documentation" },
+      { label: "Brand Assets", href: "/support/brand-assets" },
     ],
   },
 ];
