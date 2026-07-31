@@ -11,7 +11,7 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://pixelvale.store"), // ganti ke domain aslimu nanti
+  metadataBase: new URL("https://pixelvale.my.id"),
   title: {
     default: "Pixelvale Store | Handcrafted Indie Games",
     template: "%s | Pixelvale Store",

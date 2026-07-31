@@ -16,7 +16,34 @@ Aturan menjawab:
   Policy / Refund Policy atau Contact Us.
 `;
 
+// Rate limit sederhana (in-memory) — 20 request / IP / menit
+const hits = new Map<string, { count: number; reset: number }>();
+
+function rateLimit(ip: string, limit = 20, windowMs = 60_000) {
+  const now = Date.now();
+  const row = hits.get(ip);
+  if (!row || now > row.reset) {
+    hits.set(ip, { count: 1, reset: now + windowMs });
+    return true;
+  }
+  if (row.count >= limit) return false;
+  row.count += 1;
+  return true;
+}
+
 export async function POST(req: NextRequest) {
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    "unknown";
+
+  if (!rateLimit(ip)) {
+    return NextResponse.json(
+      { error: "Terlalu banyak permintaan. Coba lagi nanti." },
+      { status: 429 }
+    );
+  }
+
   let question: string;
 
   try {
@@ -30,6 +57,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Pertanyaan kosong." }, { status: 400 });
   }
 
+  // Batasi panjang input
+  if (question.length > 2000) {
+    return NextResponse.json(
+      { error: "Pertanyaan terlalu panjang." },
+      { status: 400 }
+    );
+  }
+
   if (!process.env.GEMINI_API_KEY) {
     return NextResponse.json(
       { error: "AI assistant belum dikonfigurasi." },
@@ -39,7 +74,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -60,10 +95,13 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await response.json();
-    const answer: string | undefined = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const answer: string | undefined =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     return NextResponse.json({
-      answer: answer ?? "Maaf, aku belum bisa jawab itu. Coba hubungi tim lewat Contact Us ya.",
+      answer:
+        answer ??
+        "Maaf, aku belum bisa jawab itu. Coba hubungi tim lewat Contact Us ya.",
     });
   } catch (err) {
     console.error("Support AI error:", err);
