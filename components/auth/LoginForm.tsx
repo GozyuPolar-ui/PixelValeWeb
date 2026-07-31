@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Lock, LogIn, Eye, EyeOff, Send, CheckCircle2, ArrowLeft } from "lucide-react";
-import { GoogleIcon, SteamIcon, DiscordIcon } from "./BrandIcons";
+import { GoogleIcon, GitHubIcon, DiscordIcon } from "./BrandIcons";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
@@ -58,6 +58,13 @@ export default function LoginForm() {
     setMode("forgot-sent");
   };
 
+  const handleGitHubLogin = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "github",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+  };
+
   const handleDiscordLogin = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "discord",
@@ -101,7 +108,7 @@ export default function LoginForm() {
         <div>
           <h3 className="text-lg font-display text-white mb-1">Reset your password</h3>
           <p className="text-xs text-white/70">
-            Enter the email tied to your account and we'll send you a reset link.
+            Enter the email tied to your account and we&apos;ll send you a reset link.
           </p>
         </div>
 
@@ -214,7 +221,8 @@ export default function LoginForm() {
           whileTap={{ scale: 0.95 }}
           type="button"
           onClick={handleGoogleLogin}
-          className="flex items-center justify-center p-3 border border-white/20 rounded-lg hover:bg-white/10 transition-colors"
+          className="flex items-center justify-center p-3 border border-white/20 rounded-lg hover:bg-white/10 transition-colors text-white"
+          title="Continue with Google"
         >
           <GoogleIcon size={22} />
         </motion.button>
@@ -222,17 +230,19 @@ export default function LoginForm() {
           whileHover={{ y: -2 }}
           whileTap={{ scale: 0.95 }}
           type="button"
-          className="flex items-center justify-center p-3 border border-white/20 rounded-lg hover:bg-white/10 transition-colors opacity-50 cursor-not-allowed"
-          title="Coming soon"
+          onClick={handleGitHubLogin}
+          className="flex items-center justify-center p-3 border border-white/20 rounded-lg hover:bg-white/10 transition-colors text-white"
+          title="Continue with GitHub"
         >
-          <SteamIcon size={22} />
+          <GitHubIcon size={22} />
         </motion.button>
         <motion.button
           whileHover={{ y: -2 }}
           whileTap={{ scale: 0.95 }}
           type="button"
           onClick={handleDiscordLogin}
-          className="flex items-center justify-center p-3 border border-white/20 rounded-lg hover:bg-white/10 transition-colors"
+          className="flex items-center justify-center p-3 border border-white/20 rounded-lg hover:bg-white/10 transition-colors text-white"
+          title="Continue with Discord"
         >
           <DiscordIcon size={22} />
         </motion.button>
