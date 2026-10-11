@@ -14,14 +14,30 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          # GANTI dengan nama tabel yang bisa dibaca publik (RLS select untuk anon),
-          # misalnya tabel games atau articles
+          # GANTI dengan nama tabel yang ada di database kamu
           TABLE_NAME: games
         run: |
+          # Bersihkan spasi/enter/CR yang mungkin ikut ke-paste di secret
+          URL="$(printf '%s' "$SUPABASE_URL" | tr -d '[:space:]')"
+          KEY="$(printf '%s' "$SUPABASE_ANON_KEY" | tr -d '[:space:]')"
+          URL="${URL%/}"
+
+          # Diagnosa (tidak menampilkan isi secret)
+          echo "Panjang URL: ${#URL}"
+          echo "Panjang KEY: ${#KEY}"
+          echo "Diawali https://: $([[ "$URL" == https://* ]] && echo ya || echo TIDAK)"
+
+          if [ -z "$URL" ]; then
+            echo "ERROR: secret SUPABASE_URL kosong / tidak terbaca"; exit 1
+          fi
+          if [ -z "$KEY" ]; then
+            echo "ERROR: secret SUPABASE_ANON_KEY kosong / tidak terbaca"; exit 1
+          fi
+
           curl --fail --silent --show-error \
             --retry 3 --retry-delay 10 \
-            -H "apikey: $SUPABASE_ANON_KEY" \
-            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
-            "$SUPABASE_URL/rest/v1/$TABLE_NAME?select=*&limit=1" \
+            -H "apikey: $KEY" \
+            -H "Authorization: Bearer $KEY" \
+            "$URL/rest/v1/$TABLE_NAME?select=*&limit=1" \
             > /dev/null
           echo "Supabase ping OK"
