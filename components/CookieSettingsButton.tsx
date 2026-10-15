@@ -3,7 +3,7 @@
 import { OPEN_SETTINGS_EVENT } from "@/lib/cookie-consent";
 
 export default function CookieSettingsButton({
-  className = "text-sm text-zinc-400 hover:text-white transition",
+  className = "text-xs text-on-surface-variant hover:text-primary transition-colors",
 }: {
   className?: string;
 }) {

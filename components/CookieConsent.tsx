@@ -10,6 +10,11 @@ import {
 
 type Choice = { preferences: boolean; analytics: boolean };
 
+const btnOutline =
+  "rounded-lg border-2 border-surface-variant px-4 py-2 text-sm text-on-surface-variant transition-colors hover:bg-surface-variant hover:text-ink-rich";
+const btnPrimary =
+  "rounded-lg border-2 border-primary bg-primary px-4 py-2 text-sm font-medium text-on-primary transition-opacity hover:opacity-90";
+
 function Toggle({
   checked,
   onChange,
@@ -30,11 +35,11 @@ function Toggle({
       disabled={disabled}
       onClick={() => onChange?.(!checked)}
       className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-        checked ? "bg-violet-500" : "bg-zinc-600"
+        checked ? "bg-primary" : "bg-surface-variant"
       } ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
     >
       <span
-        className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+        className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
           checked ? "translate-x-5" : "translate-x-0"
         }`}
       />
@@ -60,7 +65,7 @@ export default function CookieConsent() {
     }
   }, []);
 
-  // Buka pengaturan dari tombol "Cookie settings" (footer, dll.)
+  // Buka pengaturan dari tombol "Cookie settings" (footer)
   useEffect(() => {
     const open = () => {
       const saved = readConsent();
@@ -105,15 +110,15 @@ export default function CookieConsent() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 48, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-3xl rounded-2xl border border-white/10 bg-zinc-900/95 p-5 text-zinc-200 shadow-2xl backdrop-blur"
+            className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-3xl rounded-xl border-2 border-surface-variant bg-surface-container-low p-5 shadow-2xl"
           >
             <div className="flex flex-col gap-4 md:flex-row md:items-center">
               <div className="flex-1">
-                <h2 className="text-base font-semibold text-white">
+                <h2 className="font-display text-base text-ink-rich">
                   We use cookies 🍪
                 </h2>
-                <p className="mt-1 text-sm text-zinc-400">
-                  PixelVale uses essential cookies to keep you signed in. With
+                <p className="mt-1 text-xs text-on-surface-variant">
+                  Pixelvale uses essential cookies to keep you signed in. With
                   your permission, we also use optional cookies to remember
                   your preferences and understand how the site is used.
                 </p>
@@ -122,21 +127,21 @@ export default function CookieConsent() {
                 <button
                   type="button"
                   onClick={() => setShowSettings(true)}
-                  className="rounded-lg border border-white/15 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
+                  className={btnOutline}
                 >
                   Customize
                 </button>
                 <button
                   type="button"
                   onClick={() => commit({ preferences: false, analytics: false })}
-                  className="rounded-lg border border-white/15 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
+                  className={btnOutline}
                 >
                   Reject optional
                 </button>
                 <button
                   type="button"
                   onClick={() => commit({ preferences: true, analytics: true })}
-                  className="rounded-lg bg-violet-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-violet-400"
+                  className={btnPrimary}
                 >
                   Accept all
                 </button>
@@ -150,7 +155,7 @@ export default function CookieConsent() {
       <AnimatePresence>
         {showSettings && (
           <motion.div
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4"
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -164,33 +169,33 @@ export default function CookieConsent() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 12 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-lg rounded-2xl border border-white/10 bg-zinc-900 p-6 text-zinc-200 shadow-2xl"
+              className="w-full max-w-lg rounded-xl border-2 border-surface-variant bg-surface-container-low p-6 shadow-2xl"
             >
               <h2
                 id="cookie-settings-title"
-                className="text-lg font-semibold text-white"
+                className="font-display text-lg text-ink-rich"
               >
                 Cookie settings
               </h2>
-              <p className="mt-1 text-sm text-zinc-400">
+              <p className="mt-1 text-xs text-on-surface-variant">
                 Choose which cookies you allow. You can change this anytime.
               </p>
 
-              <div className="mt-5 space-y-4">
-                <div className="flex items-start justify-between gap-4 rounded-xl border border-white/10 p-4">
+              <div className="mt-5 space-y-3">
+                <div className="flex items-start justify-between gap-4 rounded-lg border border-surface-variant p-4">
                   <div>
-                    <p className="font-medium text-white">Essential</p>
-                    <p className="mt-1 text-sm text-zinc-400">
+                    <p className="font-display text-sm text-ink-rich">Essential</p>
+                    <p className="mt-1 text-xs text-on-surface-variant">
                       Required for login and your session. Always on.
                     </p>
                   </div>
                   <Toggle checked disabled label="Essential cookies" />
                 </div>
 
-                <div className="flex items-start justify-between gap-4 rounded-xl border border-white/10 p-4">
+                <div className="flex items-start justify-between gap-4 rounded-lg border border-surface-variant p-4">
                   <div>
-                    <p className="font-medium text-white">Preferences</p>
-                    <p className="mt-1 text-sm text-zinc-400">
+                    <p className="font-display text-sm text-ink-rich">Preferences</p>
+                    <p className="mt-1 text-xs text-on-surface-variant">
                       Remember choices such as theme or language.
                     </p>
                   </div>
@@ -201,10 +206,10 @@ export default function CookieConsent() {
                   />
                 </div>
 
-                <div className="flex items-start justify-between gap-4 rounded-xl border border-white/10 p-4">
+                <div className="flex items-start justify-between gap-4 rounded-lg border border-surface-variant p-4">
                   <div>
-                    <p className="font-medium text-white">Analytics</p>
-                    <p className="mt-1 text-sm text-zinc-400">
+                    <p className="font-display text-sm text-ink-rich">Analytics</p>
+                    <p className="mt-1 text-xs text-on-surface-variant">
                       Help us understand how the site is used so we can improve
                       it.
                     </p>
@@ -221,21 +226,21 @@ export default function CookieConsent() {
                 <button
                   type="button"
                   onClick={() => commit({ preferences: false, analytics: false })}
-                  className="rounded-lg border border-white/15 px-4 py-2 text-sm transition hover:bg-white/10"
+                  className={btnOutline}
                 >
                   Reject optional
                 </button>
                 <button
                   type="button"
                   onClick={() => commit(choice)}
-                  className="rounded-lg border border-white/15 px-4 py-2 text-sm transition hover:bg-white/10"
+                  className={btnOutline}
                 >
                   Save choices
                 </button>
                 <button
                   type="button"
                   onClick={() => commit({ preferences: true, analytics: true })}
-                  className="rounded-lg bg-violet-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-violet-400"
+                  className={btnPrimary}
                 >
                   Accept all
                 </button>
