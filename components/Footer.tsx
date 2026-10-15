@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FaDiscord, FaYoutube, FaGithub } from "react-icons/fa";
 import Image from "next/image";
+import CookieSettingsButton from "@/components/CookieSettingsButton";
 
 type FooterLink = {
   label: string;
@@ -49,12 +50,12 @@ export default function Footer() {
       <div className="px-6 md:px-16 max-w-container-max mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="space-y-4">
-<div className="flex items-center gap-2">
-  <div className="relative h-8 w-8 rounded overflow-hidden shrink-0">
-    <Image src="/PixelVale.jpeg" alt="Pixelvale" fill className="object-cover" />
-  </div>
-  <span className="font-display text-primary">Pixelvale Games</span>
-</div>
+            <div className="flex items-center gap-2">
+              <div className="relative h-8 w-8 rounded overflow-hidden shrink-0">
+                <Image src="/PixelVale.jpeg" alt="Pixelvale" fill className="object-cover" />
+              </div>
+              <span className="font-display text-primary">Pixelvale Games</span>
+            </div>
             <p className="text-xs text-on-surface-variant max-w-xs">
               Connecting players with handcrafted worlds. The premiere home for
               independent game creators.
@@ -94,9 +95,12 @@ export default function Footer() {
         </div>
 
         <div className="pt-8 border-t border-surface-variant flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-xs text-on-surface-variant">
-            © 2024 Pixelvale Indie Games Platform. All rights reserved.
-          </p>
+          <div className="flex flex-col md:flex-row items-center gap-3 md:gap-6">
+            <p className="text-xs text-on-surface-variant">
+              © 2024 Pixelvale Indie Games Platform. All rights reserved.
+            </p>
+            <CookieSettingsButton className="text-xs text-on-surface-variant hover:text-primary transition-colors" />
+          </div>
           <div className="flex gap-8">
             {socials.map(({ label, href, icon: Icon }) => (
               <a

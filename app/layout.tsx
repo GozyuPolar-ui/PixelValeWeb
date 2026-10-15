@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Space_Mono } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/Toast";
+import CookieConsent from "@/components/CookieConsent";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const spaceMono = Space_Mono({
@@ -39,7 +40,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${spaceMono.variable}`}>
       <body className="font-body overflow-x-hidden">
-        <ToastProvider>{children}</ToastProvider>
+        <ToastProvider>
+          {children}
+          <CookieConsent />
+        </ToastProvider>
       </body>
     </html>
   );
