@@ -1,73 +1,89 @@
+import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
+import Hero from "@/components/Hero";
+import NewReleases from "@/components/NewReleases";
+import GenreGrid from "@/components/GenreGrid";
+import CommunityFavorites from "@/components/CommunityFavorites";
+import PlatformNews from "@/components/PlatformNews";
 import Footer from "@/components/Footer";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createPublicSupabaseClient } from "@/lib/supabase-public";
+import { GameSummary } from "@/lib/types";
+import { unstable_cache } from "next/cache";
 
-export default function TermsPage() {
+export const metadata: Metadata = {
+  title: { absolute: "Pixelvale Store | Explore Our World" },
+  description:
+    "Welcome to Pixelvale. Explore our world of handcrafted indie games, cozy adventures, and a community of independent creators.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: "Pixelvale Store | Explore Our World",
+    description:
+      "Welcome to Pixelvale. Explore our world of handcrafted indie games and cozy adventures.",
+    url: "/",
+  },
+};
+
+const getPublicHomeData = unstable_cache(
+  async () => {
+    const supabase = createPublicSupabaseClient();
+    const [{ data: rows }, { data: articleRows }] = await Promise.all([
+      supabase.from("games").select("*").order("created_at", { ascending: false }),
+      supabase
+        .from("articles")
+        .select("id, title, excerpt, category, image_url, created_at")
+        .order("created_at", { ascending: false })
+        .limit(2),
+    ]);
+    return { rows, articleRows };
+  },
+  ["home-public-data"],
+  { revalidate: 60 } // cache 60 detik — cukup fresh, tapi ngirit query berulang
+);
+
+export default async function Home() {
+  const supabase = await createServerSupabaseClient();
+
+  // Data publik (sama buat semua orang) diambil dari cache 60 detik
+  const [{ rows, articleRows }, { data: { user } }] = await Promise.all([
+    getPublicHomeData(),
+    supabase.auth.getUser(),
+  ]);
+
+  // Step 2: owned check baru bisa jalan setelah tau user-nya siapa
+  let ownedIds = new Set<string>();
+  if (user) {
+    const { data: libraryRows } = await supabase
+      .from("user_library")
+      .select("game_id")
+      .eq("user_id", user.id);
+    ownedIds = new Set((libraryRows ?? []).map((r) => r.game_id));
+  }
+
+  const games: GameSummary[] = (rows ?? []).map((g) => ({
+    id: g.id,
+    slug: g.slug,
+    title: g.title,
+    genre: g.genre ?? "",
+    price: g.is_free ? 0 : Number(g.price ?? 0),
+    isFree: g.is_free ?? false,
+    image: g.image_url || "",
+    rating: g.rating ?? 0,
+    reviewCount: g.review_count ?? 0,
+    tagline: g.description ? String(g.description).split(/\n/)[0].trim() : "",
+    owned: ownedIds.has(g.id),
+  }));
+
   return (
     <>
       <Navbar />
-      <main className="max-w-2xl mx-auto px-6 pt-32 pb-24">
-        <h1 className="text-4xl font-display text-ink-rich mb-2">Terms of Service</h1>
-        <p className="text-xs text-ink-muted mb-10">Last updated: 2026</p>
-
-        <div className="prose prose-neutral max-w-none prose-headings:font-display">
-          <p>
-            Welcome to Pixelvale Store. By creating an account or using our platform, you agree
-            to the following terms.
-          </p>
-
-          <h2>1. Your Account</h2>
-          <p>
-            You are responsible for keeping your account credentials secure. You must provide
-            accurate information when registering and are responsible for all activity under
-            your account.
-          </p>
-
-          <h2>2. Acceptable Use</h2>
-          <p>
-            You agree not to use Pixelvale Store to distribute harmful content, impersonate
-            others, harass members of the community, or attempt to disrupt the platform's
-            normal operation.
-          </p>
-
-          <h2>3. Purchases &amp; Content</h2>
-          <p>
-            Games sold on Pixelvale Store are distributed with permission from their respective
-            developers. Purchasing a game grants you a personal license to use it, as described
-            in our{" "}
-            <a href="/support/store-policy" className="text-primary hover:underline">
-              Store Policy
-            </a>
-            .
-          </p>
-
-          <h2>4. Community Content</h2>
-          <p>
-            Threads, replies, reviews, and articles you post remain yours, but by posting them
-            you grant Pixelvale Store a license to display them on the platform. We may remove
-            content that violates these terms.
-          </p>
-
-          <h2>5. Termination</h2>
-          <p>
-            We may suspend or terminate accounts that violate these terms. You may also stop
-            using the platform and request account deletion at any time via{" "}
-            <a href="/support/contact" className="text-primary hover:underline">
-              Contact Us
-            </a>
-            .
-          </p>
-
-          <h2>6. Changes to These Terms</h2>
-          <p>
-            We may update these terms as the platform evolves. Continued use of Pixelvale Store
-            after changes means you accept the updated terms.
-          </p>
-
-          <p className="text-sm text-ink-muted">
-            This page is still a work in progress and will be updated as the platform grows.
-          </p>
-        </div>
+      <Hero games={games} />
+      <main className="py-12 space-y-24">
+        <NewReleases games={games} />
+        <GenreGrid />
+        <CommunityFavorites games={games} />
       </main>
+      <PlatformNews articles={articleRows || []} />
       <Footer />
     </>
   );
