@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import NewReleases from "@/components/NewReleases";
@@ -9,6 +10,19 @@ import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { createPublicSupabaseClient } from "@/lib/supabase-public";
 import { GameSummary } from "@/lib/types";
 import { unstable_cache } from "next/cache";
+
+export const metadata: Metadata = {
+  title: { absolute: "Pixelvale Store | Explore Our World" },
+  description:
+    "Welcome to Pixelvale. Explore our world of handcrafted indie games, cozy adventures, and a community of independent creators.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: "Pixelvale Store | Explore Our World",
+    description:
+      "Welcome to Pixelvale. Explore our world of handcrafted indie games and cozy adventures.",
+    url: "/",
+  },
+};
 
 const getPublicHomeData = unstable_cache(
   async () => {
