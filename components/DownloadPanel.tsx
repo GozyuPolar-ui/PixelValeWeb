@@ -1,19 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Check, Download, Monitor, Apple, Smartphone } from "lucide-react";
 import { GameDetailData } from "@/lib/types";
 import { createClient } from "@/lib/supabase";
 import { formatIDR } from "@/lib/format";
+import { useToast } from "@/components/Toast";
 
 export default function DownloadPanel({ game }: { game: GameDetailData }) {
   const [owned, setOwned] = useState(false);
   const [checking, setChecking] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
+  const { toast } = useToast();
 
-const allPlatforms = [
+  const allPlatforms = [
     { key: "windows", label: "Windows", icon: Monitor, url: game.downloadLinks.windows },
     { key: "mac", label: "Mac", icon: Apple, url: game.downloadLinks.mac },
     { key: "android", label: "Android", icon: Smartphone, url: game.downloadLinks.android },
@@ -25,46 +27,91 @@ const allPlatforms = [
   );
 
   useEffect(() => {
-    const checkOwnership = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+    setOwned(false);
+    setChecking(true);
 
-      if (user) {
-        const { data } = await supabase
-          .from("user_library")
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("game_id", game.id)
-          .maybeSingle();
-        setOwned(!!data);
-      }
+    if (game.isFree) {
       setChecking(false);
+      return;
+    }
+
+    let isCurrent = true;
+    const checkOwnership = async () => {
+      try {
+        const {
+          data: { user },
+          error: authError,
+        } = await supabase.auth.getUser();
+
+        if (authError) {
+          toast("Could not check your library. Please try again.", "error");
+        } else if (user) {
+          const { data, error } = await supabase
+            .from("user_library")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("game_id", game.id)
+            .maybeSingle();
+          if (error) {
+            toast("Could not check your library. Please try again.", "error");
+          } else if (isCurrent) {
+            setOwned(!!data);
+          }
+        }
+      } catch {
+        toast("Could not check your library. Please try again.", "error");
+      } finally {
+        if (isCurrent) setChecking(false);
+      }
     };
     checkOwnership();
-  }, [game.id]);
+    return () => {
+      isCurrent = false;
+    };
+  }, [game.id, game.isFree, supabase, toast]);
 
   const handleAddToLibrary = async () => {
     if (owned || processing) return;
     setProcessing(true);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    try {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
 
-    if (user) {
-      await supabase.from("user_library").insert({
+      if (authError) {
+        toast("Could not verify your account. Please try again.", "error");
+        return;
+      }
+
+      if (!user) {
+        toast("Log in to add this game to your library.", "info");
+        return;
+      }
+
+      const { error } = await supabase.from("user_library").insert({
         user_id: user.id,
         game_id: game.id,
         hours_played: 0,
       });
-      setOwned(true);
-    }
 
-    setProcessing(false);
+      if (error) {
+        toast("Could not add this game to your library. Please try again.", "error");
+        return;
+      }
+
+      setOwned(true);
+      toast("Game added to your library.", "success");
+    } catch {
+      toast("Could not add this game to your library. Please try again.", "error");
+    } finally {
+      setProcessing(false);
+    }
   };
 
-const activePlatform = allPlatforms.find((p) => p.key === selectedPlatform);
+  const activePlatform = allPlatforms.find((p) => p.key === selectedPlatform);
+  const canDownload = owned || game.isFree;
 
   return (
 <motion.div
@@ -91,11 +138,13 @@ const activePlatform = allPlatforms.find((p) => p.key === selectedPlatform);
         <div className="w-px h-32 bg-outline-variant hidden md:block" />
 
         <div className="text-center min-w-[280px]">
-          {checking ? (
-            <div className="h-20 flex items-center justify-center text-ink-muted text-sm">Loading...</div>
-          ) : owned ? (
+          {checking && !game.isFree ? (
+            <div className="h-20 flex items-center justify-center text-ink-muted text-sm">
+              Loading...
+            </div>
+          ) : canDownload ? (
             <>
-<div className="flex gap-2 justify-center mb-4">
+              <div className="flex gap-2 justify-center mb-4">
                 {allPlatforms.map((p) => (
                   <button
                     key={p.key}
